@@ -128,6 +128,20 @@
           Orçamentos
         </button>
         <button 
+          id="tabBtn-cards"
+          onclick="switchTab('cards')"
+          class="flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 rounded-lg transition"
+        >
+          Cartões
+        </button>
+        <button 
+          id="tabBtn-banks"
+          onclick="switchTab('banks')"
+          class="flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 rounded-lg transition"
+        >
+          Bancos & Transferências
+        </button>
+        <button 
           id="tabBtn-goals"
           onclick="switchTab('goals')"
           class="flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 rounded-lg transition"
@@ -340,6 +354,57 @@
         <!-- Injetado dinamicamente via JS -->
       </div>
 
+    </section>
+
+    <!-- SEÇÃO NOVA 3.5: GESTÃO DE CARTÕES DE CRÉDITO -->
+    <section id="section-cards" class="hidden space-y-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="font-bold text-xl text-white">Cartões de Crédito & Faturas</h2>
+          <p class="text-xs text-slate-400">Gerencie seus limites, acompanhe o gasto da fatura atual e Quite com 1 clique</p>
+        </div>
+        <button 
+          onclick="openCardModal()" 
+          class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-emerald-500/10"
+        >
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Novo Cartão</span>
+        </button>
+      </div>
+
+      <div id="cardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Injetado dinamicamente via JS -->
+      </div>
+    </section>
+
+    <!-- SEÇÃO NOVA 3.6: BANCOS & TRANSFERÊNCIAS -->
+    <section id="section-banks" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="font-bold text-xl text-white">Contas Bancárias & Transferências</h2>
+          <p class="text-xs text-slate-400">Controle o saldo de cada instituição e realize transferências entre suas contas</p>
+        </div>
+        <div class="flex space-x-3">
+          <button 
+            onclick="openTransferModal()" 
+            class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-indigo-600/20"
+          >
+            <i data-lucide="arrow-right-left" class="w-4 h-4"></i>
+            <span>Transferir Saldo</span>
+          </button>
+          <button 
+            onclick="openBankModal()" 
+            class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-emerald-500/10"
+          >
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Nova Conta</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="banksGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Injetado dinamicamente via JS -->
+      </div>
     </section>
 
     <!-- SEÇÃO 4: GESTÃO DE METAS (CRUD COMPLETO) -->
@@ -638,6 +703,119 @@
     </div>
   </div>
 
+  <!-- MODAL: CARTÃO DE CRÉDITO -->
+  <div id="cardModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 id="cardModalTitle" class="font-bold text-white text-base">Novo Cartão de Crédito</h3>
+        <button onclick="closeCardModal()" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="cardForm" onsubmit="saveCard(event)" class="space-y-4">
+        <input type="hidden" id="cardId" />
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Nome do Cartão / Banco</label>
+          <input type="text" id="cardName" required placeholder="Ex: Nubank Violeta, Itaú Click" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Limite Total (R$)</label>
+            <input type="number" step="0.01" id="cardLimit" required placeholder="5000,00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Fatura Atual (R$)</label>
+            <input type="number" step="0.01" id="cardUsed" placeholder="0,00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+        </div>
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
+          <button type="button" onclick="closeCardModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition">Salvar Cartão</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PAGAR FATURA -->
+  <div id="payInvoiceModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base">Pagar Fatura de Cartão</h3>
+        <button onclick="closePayInvoiceModal()" class="text-slate-400 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form onsubmit="submitPayInvoice(event)" class="space-y-4">
+        <input type="hidden" id="payCardId" />
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Valor da Fatura a Pagar</label>
+          <input type="number" step="0.01" id="payInvoiceAmount" readonly class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm font-bold text-rose-400 cursor-not-allowed" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Debitar da Conta</label>
+          <select id="payInvoiceBankSelect" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+            <!-- Injetado via JS -->
+          </select>
+        </div>
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
+          <button type="button" onclick="closePayInvoiceModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition">Confirmar Pagamento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CONTA BANCÁRIA -->
+  <div id="bankModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 id="bankModalTitle" class="font-bold text-white text-base">Nova Conta Bancária</h3>
+        <button onclick="closeBankModal()" class="text-slate-400 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="bankForm" onsubmit="saveBank(event)" class="space-y-4">
+        <input type="hidden" id="bankId" />
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Nome do Banco / Conta</label>
+          <input type="text" id="bankName" required placeholder="Ex: Nubank, Banco do Brasil, XP" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Saldo Atual (R$)</label>
+          <input type="number" step="0.01" id="bankBalance" required placeholder="0,00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+        </div>
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
+          <button type="button" onclick="closeBankModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition">Salvar Conta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: TRANSFERÊNCIA ENTRE CONTAS -->
+  <div id="transferModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base">Transferência entre Contas</h3>
+        <button onclick="closeTransferModal()" class="text-slate-400 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form onsubmit="submitTransfer(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Conta de Origem (Saída)</label>
+          <select id="transferFromBank" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Conta de Destino (Entrada)</label>
+          <select id="transferToBank" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Valor da Transferência (R$)</label>
+          <input type="number" step="0.01" id="transferAmount" required placeholder="500,00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+        </div>
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
+          <button type="button" onclick="closeTransferModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition">Realizar Transferência</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- JAVASCRIPT COMPLETO INTEGRADO -->
   <script>
     const categoriesList = ['Salário', 'Freelance', 'Moradia', 'Alimentação', 'Lazer', 'Educação', 'Saúde', 'Transporte', 'Outros'];
@@ -667,9 +845,22 @@
       { id: '3', title: 'Viagem de Férias', target: 5000, current: 1800, category: 'Lazer' }
     ];
 
+    const initialCards = [
+      { id: '1', name: 'Nubank Roxinho', limit: 6000, used: 1430 },
+      { id: '2', name: 'Itaú Click', limit: 10000, used: 2150 }
+    ];
+
+    const initialBanks = [
+      { id: '1', name: 'Nubank (Conta Principal)', balance: 5400 },
+      { id: '2', name: 'Itaú Uniclass', balance: 3200 },
+      { id: '3', name: 'XP Investimentos', balance: 12500 }
+    ];
+
     let transactions = JSON.parse(localStorage.getItem('fin_transactions')) || initialTransactions;
     let budgets = JSON.parse(localStorage.getItem('fin_budgets')) || initialBudgets;
     let goals = JSON.parse(localStorage.getItem('fin_goals')) || initialGoals;
+    let cards = JSON.parse(localStorage.getItem('fin_cards')) || initialCards;
+    let banks = JSON.parse(localStorage.getItem('fin_banks')) || initialBanks;
     let activeTab = 'dashboard';
 
     function formatCurrency(value) {
@@ -680,6 +871,8 @@
       localStorage.setItem('fin_transactions', JSON.stringify(transactions));
       localStorage.setItem('fin_budgets', JSON.stringify(budgets));
       localStorage.setItem('fin_goals', JSON.stringify(goals));
+      localStorage.setItem('fin_cards', JSON.stringify(cards));
+      localStorage.setItem('fin_banks', JSON.stringify(banks));
       renderApp();
     }
 
@@ -708,7 +901,7 @@
 
     function switchTab(tabName) {
       activeTab = tabName;
-      ['dashboard', 'transactions', 'budgets', 'goals'].forEach(t => {
+      ['dashboard', 'transactions', 'budgets', 'cards', 'banks', 'goals'].forEach(t => {
         const btn = document.getElementById(`tabBtn-${t}`);
         const sec = document.getElementById(`section-${t}`);
         if (!btn || !sec) return;
@@ -734,7 +927,8 @@
       const monthExpense = monthTransactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
       const monthBalance = monthIncome - monthExpense;
 
-      const totalBalance = transactions.reduce((acc, t) => t.type === 'income' ? acc + t.amount : acc - t.amount, 0);
+      // Saldo Geral total acumulado nas contas bancárias
+      const totalBalance = banks.reduce((acc, b) => acc + b.balance, 0);
 
       document.getElementById('card-totalBalance').innerText = formatCurrency(totalBalance);
       document.getElementById('card-monthIncome').innerText = formatCurrency(monthIncome);
@@ -752,6 +946,8 @@
       renderSmartAlerts(monthTransactions);
       renderTransactions();
       renderBudgets(monthTransactions);
+      renderCards();
+      renderBanks();
       renderGoals();
 
       if (window.lucide) window.lucide.createIcons();
@@ -771,12 +967,284 @@
         }
       });
 
+      cards.forEach(c => {
+        if (c.used >= c.limit * 0.9) {
+          alerts.push(`<div class="flex items-center text-xs font-semibold text-rose-400"><i data-lucide="credit-card" class="w-4 h-4 mr-2"></i> Fatura do cartão <strong>${c.name}</strong> está próxima do limite máximo (${((c.used/c.limit)*100).toFixed(0)}% utilizado).</div>`);
+        }
+      });
+
       if (alerts.length > 0) {
         alertContainer.innerHTML = alerts.join('');
         alertContainer.classList.remove('hidden');
       } else {
         alertContainer.classList.add('hidden');
       }
+    }
+
+    // RENDERIZAÇÃO DE CARTÕES DE CRÉDITO
+    function renderCards() {
+      const grid = document.getElementById('cardsGrid');
+      if (cards.length === 0) {
+        grid.innerHTML = `<p class="col-span-full text-center text-slate-500 py-8 text-xs">Nenhum cartão de crédito cadastrado.</p>`;
+        return;
+      }
+
+      grid.innerHTML = cards.map(c => {
+        const percent = Math.min(100, Math.round((c.used / c.limit) * 100));
+        const available = Math.max(0, c.limit - c.used);
+        const color = percent >= 90 ? 'bg-rose-500' : percent >= 75 ? 'bg-amber-500' : 'bg-emerald-500';
+
+        return `
+          <div class="glass-card p-5 rounded-2xl space-y-4 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-start mb-2">
+                <div class="flex items-center space-x-2">
+                  <div class="p-2 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
+                    <i data-lucide="credit-card" class="w-5 h-5"></i>
+                  </div>
+                  <h3 class="font-bold text-white text-base">${c.name}</h3>
+                </div>
+                <div class="flex space-x-1">
+                  <button onclick="openCardModal('${c.id}')" class="p-1 text-slate-400 hover:text-emerald-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                  <button onclick="deleteCard('${c.id}')" class="p-1 text-slate-400 hover:text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-baseline mt-4 mb-1">
+                <span class="text-xs text-slate-400">Fatura Atual:</span>
+                <span class="text-xl font-extrabold text-rose-400">${formatCurrency(c.used)}</span>
+              </div>
+
+              <div class="w-full h-3 bg-slate-950 rounded-full overflow-hidden mb-2">
+                <div class="h-full ${color} transition-all duration-300" style="width: ${percent}%"></div>
+              </div>
+
+              <div class="flex justify-between text-[11px] text-slate-400">
+                <span>Limite: ${formatCurrency(c.limit)}</span>
+                <span class="text-emerald-400 font-semibold">Disponível: ${formatCurrency(available)}</span>
+              </div>
+            </div>
+
+            <button 
+              onclick="openPayInvoiceModal('${c.id}')"
+              class="w-full mt-2 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/10"
+            >
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+              <span>Pagar Fatura (Zerar)</span>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // RENDERIZAÇÃO DE BANCOS E CONTAS
+    function renderBanks() {
+      const grid = document.getElementById('banksGrid');
+      if (banks.length === 0) {
+        grid.innerHTML = `<p class="col-span-full text-center text-slate-500 py-8 text-xs">Nenhuma conta bancária cadastrada.</p>`;
+        return;
+      }
+
+      grid.innerHTML = banks.map(b => `
+        <div class="glass-card p-5 rounded-2xl space-y-4 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <div class="flex items-center space-x-2">
+                <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+                  <i data-lucide="building-2" class="w-5 h-5"></i>
+                </div>
+                <h3 class="font-bold text-white text-base">${b.name}</h3>
+              </div>
+              <div class="flex space-x-1">
+                <button onclick="openBankModal('${b.id}')" class="p-1 text-slate-400 hover:text-emerald-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                <button onclick="deleteBank('${b.id}')" class="p-1 text-slate-400 hover:text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <span class="text-xs text-slate-400">Saldo Disponível</span>
+              <div class="text-2xl font-extrabold text-white mt-1">${formatCurrency(b.balance)}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // CRUD & AUTOMATION DE CARTÕES
+    function openCardModal(id = null) {
+      const modal = document.getElementById('cardModal');
+      const title = document.getElementById('cardModalTitle');
+      if (id) {
+        const item = cards.find(c => c.id === id);
+        if (!item) return;
+        document.getElementById('cardId').value = item.id;
+        document.getElementById('cardName').value = item.name;
+        document.getElementById('cardLimit').value = item.limit;
+        document.getElementById('cardUsed').value = item.used;
+        title.innerText = "Editar Cartão";
+      } else {
+        document.getElementById('cardForm').reset();
+        document.getElementById('cardId').value = "";
+        title.innerText = "Novo Cartão";
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeCardModal() { document.getElementById('cardModal').classList.add('hidden'); }
+
+    function saveCard(e) {
+      e.preventDefault();
+      const id = document.getElementById('cardId').value;
+      const name = document.getElementById('cardName').value;
+      const limit = parseFloat(document.getElementById('cardLimit').value);
+      const used = parseFloat(document.getElementById('cardUsed').value || 0);
+
+      if (id) {
+        cards = cards.map(c => c.id === id ? { id, name, limit, used } : c);
+      } else {
+        cards.push({ id: Date.now().toString(), name, limit, used });
+      }
+      closeCardModal();
+      saveState();
+    }
+
+    function deleteCard(id) {
+      cards = cards.filter(c => c.id !== id);
+      saveState();
+    }
+
+    function openPayInvoiceModal(id) {
+      const card = cards.find(c => c.id === id);
+      if (!card || card.used <= 0) {
+        alert("Esta fatura já está zerada!");
+        return;
+      }
+      document.getElementById('payCardId').value = id;
+      document.getElementById('payInvoiceAmount').value = card.used;
+
+      const bankSelect = document.getElementById('payInvoiceBankSelect');
+      bankSelect.innerHTML = banks.map(b => `<option value="${b.id}">${b.name} (Saldo: ${formatCurrency(b.balance)})</option>`).join('');
+
+      document.getElementById('payInvoiceModal').classList.remove('hidden');
+    }
+
+    function closePayInvoiceModal() { document.getElementById('payInvoiceModal').classList.add('hidden'); }
+
+    function submitPayInvoice(e) {
+      e.preventDefault();
+      const cardId = document.getElementById('payCardId').value;
+      const bankId = document.getElementById('payInvoiceBankSelect').value;
+      const card = cards.find(c => c.id === cardId);
+      const bank = banks.find(b => b.id === bankId);
+
+      if (!card || !bank) return;
+      if (bank.balance < card.used) {
+        alert("Saldo insuficiente na conta bancária selecionada para pagar esta fatura!");
+        return;
+      }
+
+      // Automação: Desconta do banco, zera a fatura e registra o lançamento
+      bank.balance -= card.used;
+      const amountPaid = card.used;
+      card.used = 0;
+
+      transactions.unshift({
+        id: Date.now().toString(),
+        description: `Pagamento Fatura ${card.name}`,
+        amount: amountPaid,
+        type: 'expense',
+        category: 'Outros',
+        date: new Date().toISOString().split('T')[0]
+      });
+
+      closePayInvoiceModal();
+      saveState();
+      alert(`Fatura do ${card.name} paga com sucesso! O valor de ${formatCurrency(amountPaid)} foi debitado do ${bank.name}.`);
+    }
+
+    // CRUD & BANCOS
+    function openBankModal(id = null) {
+      const modal = document.getElementById('bankModal');
+      const title = document.getElementById('bankModalTitle');
+      if (id) {
+        const item = banks.find(b => b.id === id);
+        if (!item) return;
+        document.getElementById('bankId').value = item.id;
+        document.getElementById('bankName').value = item.name;
+        document.getElementById('bankBalance').value = item.balance;
+        title.innerText = "Editar Conta";
+      } else {
+        document.getElementById('bankForm').reset();
+        document.getElementById('bankId').value = "";
+        title.innerText = "Nova Conta";
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeBankModal() { document.getElementById('bankModal').classList.add('hidden'); }
+
+    function saveBank(e) {
+      e.preventDefault();
+      const id = document.getElementById('bankId').value;
+      const name = document.getElementById('bankName').value;
+      const balance = parseFloat(document.getElementById('bankBalance').value);
+
+      if (id) {
+        banks = banks.map(b => b.id === id ? { id, name, balance } : b);
+      } else {
+        banks.push({ id: Date.now().toString(), name, balance });
+      }
+      closeBankModal();
+      saveState();
+    }
+
+    function deleteBank(id) {
+      banks = banks.filter(b => b.id !== id);
+      saveState();
+    }
+
+    // AUTOMIA DE TRANSFERÊNCIA ENTRE CONTAS
+    function openTransferModal() {
+      if (banks.length < 2) {
+        alert("Cadastre pelo menos 2 contas bancárias para realizar transferências entre elas!");
+        return;
+      }
+      const fromSelect = document.getElementById('transferFromBank');
+      const toSelect = document.getElementById('transferToBank');
+
+      fromSelect.innerHTML = banks.map(b => `<option value="${b.id}">${b.name} (${formatCurrency(b.balance)})</option>`).join('');
+      toSelect.innerHTML = banks.map(b => `<option value="${b.id}">${b.name} (${formatCurrency(b.balance)})</option>`).join('');
+      
+      document.getElementById('transferModal').classList.remove('hidden');
+    }
+
+    function closeTransferModal() { document.getElementById('transferModal').classList.add('hidden'); }
+
+    function submitTransfer(e) {
+      e.preventDefault();
+      const fromId = document.getElementById('transferFromBank').value;
+      const toId = document.getElementById('transferToBank').value;
+      const amount = parseFloat(document.getElementById('transferAmount').value);
+
+      if (fromId === toId) {
+        alert("Selecione contas diferentes para transferência!");
+        return;
+      }
+
+      const fromBank = banks.find(b => b.id === fromId);
+      const toBank = banks.find(b => b.id === toId);
+
+      if (fromBank.balance < amount) {
+        alert("Saldo insuficiente na conta de origem!");
+        return;
+      }
+
+      fromBank.balance -= amount;
+      toBank.balance += amount;
+
+      closeTransferModal();
+      saveState();
+      alert(`Transferência de ${formatCurrency(amount)} realizada com sucesso de ${fromBank.name} para ${toBank.name}!`);
     }
 
     function renderDashboardBudgets(monthTransactions) {
