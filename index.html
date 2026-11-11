@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinControl Pro - Gestão Financeira Completa</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card-hover {
+      transition: all 0.25s ease-in-out;
+    }
+    .glass-card-hover:hover {
+      transform: translateY(-2px);
+      border-color: rgba(16, 185, 129, 0.3);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased min-h-screen flex flex-col">
+
+  <!-- NAVBAR / HEADER PRINCIPAL -->
+  <header class="bg-slate-900/90 border-b border-slate-800/80 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 bg-gradient-to-tr from-emerald-600 to-teal-400 rounded-xl shadow-lg shadow-emerald-500/20 text-slate-950">
+          <i data-lucide="wallet" class="w-6 h-6 stroke-[2.5]"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">FinControl Pro</h1>
+          <span class="text-[11px] text-emerald-400 font-semibold tracking-wide uppercase">Gestão Financeira & Automação</span>
+        </div>
+      </div>
+
+      <!-- Ações Rápidas do Header -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <button 
+          onclick="openTransactionModal()" 
+          class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-emerald-500/20 active:scale-95"
+        >
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>Novo Lançamento</span>
+        </button>
+
+        <button 
+          onclick="exportBackup()" 
+          title="Exportar Dados (Backup JSON)" 
+          class="p-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl border border-slate-700/50 transition"
+        >
+          <i data-lucide="download" class="w-4 h-4"></i>
+        </button>
+
+        <button 
+          onclick="document.getElementById('importFile').click()" 
+          title="Importar Backup" 
+          class="p-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl border border-slate-700/50 transition"
+        >
+          <i data-lucide="upload" class="w-4 h-4"></i>
+        </button>
+        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importBackup(event)" />
+
+        <button 
+          onclick="resetDemoData()" 
+          title="Restaurar dados iniciais de demonstração" 
+          class="p-2.5 bg-slate-800/80 hover:bg-slate-700 text-rose-400 hover:text-rose-300 rounded-xl border border-slate-700/50 transition"
+        >
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 space-y-6 flex-grow w-full">
+
+    <!-- CONTROLES & FILTROS SUPERIORES -->
+    <div class="glass-card p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 border border-slate-800">
+      
+      <!-- Navegação por Abas -->
+      <nav class="flex bg-slate-900/80 p-1.5 rounded-xl border border-slate-800/80 w-full md:w-auto">
+        <button 
+          id="tabBtn-dashboard"
+          onclick="switchTab('dashboard')"
+          class="flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition text-white bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm"
+        >
+          Dashboard Geral
+        </button>
+        <button 
+          id="tabBtn-transactions"
+          onclick="switchTab('transactions')"
+          class="flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 rounded-lg transition"
+        >
+          Lançamentos (CRUD)
+        </button>
+        <button 
+          id="tabBtn-budgets"
+          onclick="switchTab('budgets')"
+          class="flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 rounded-lg transition"
+        >
+          Orçamentos
+        </button>
+        <button 
+          id="tabBtn-goals"
+          onclick="switchTab('goals')"
+          class="flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 rounded-lg transition"
+        >
+          Metas
+        </button>
+      </nav>
+
+      <!-- Filtro de Período & Automações -->
+      <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+        
+        <!-- Seleção de Mês -->
+        <div class="flex items-center space-x-2 bg-slate-900/80 border border-slate-800 px-3.5 py-2 rounded-xl text-xs sm:text-sm">
+          <i data-lucide="calendar" class="w-4 h-4 text-emerald-400"></i>
+          <span class="text-slate-400 font-medium">Mês:</span>
+          <input 
+            type="month" 
+            id="monthFilter" 
+            onchange="renderApp()"
+            class="bg-transparent border-none text-white font-bold focus:outline-none cursor-pointer"
+          />
+        </div>
+
+        <!-- Botão de Automação Rápida -->
+        <button 
+          onclick="runAutomations()" 
+          title="Processa contas recorrentes do mês e atualiza o saldo automático"
+          class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-semibold px-3.5 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition"
+        >
+          <i data-lucide="zap" class="w-4 h-4 text-indigo-400"></i>
+          <span class="hidden sm:inline">Executar Automações</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- SEÇÃO 1: DASHBOARD GERAL -->
+    <section id="section-dashboard" class="space-y-6">
+
+      <!-- CARDS RESUMO DA CONTA -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Saldo Geral em Conta -->
+        <div class="glass-card glass-card-hover p-5 rounded-2xl relative overflow-hidden">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Saldo Geral Disponível</span>
+            <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+              <i data-lucide="landmark" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <div id="card-totalBalance" class="text-2xl sm:text-3xl font-extrabold text-white">R$ 0,00</div>
+          <p class="text-[11px] text-slate-400 mt-2">Saldo líquido acumulado total</p>
+        </div>
+
+        <!-- Receitas do Mês -->
+        <div class="glass-card glass-card-hover p-5 rounded-2xl">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Entradas (Mês Selecionado)</span>
+            <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+              <i data-lucide="trending-up" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <div id="card-monthIncome" class="text-2xl sm:text-3xl font-extrabold text-emerald-400">R$ 0,00</div>
+          <span class="text-[11px] text-slate-400 mt-2 block">Total de receitas confirmadas</span>
+        </div>
+
+        <!-- Despesas do Mês -->
+        <div class="glass-card glass-card-hover p-5 rounded-2xl">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Saídas (Mês Selecionado)</span>
+            <div class="p-2 bg-rose-500/10 text-rose-400 rounded-xl border border-rose-500/20">
+              <i data-lucide="trending-down" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <div id="card-monthExpense" class="text-2xl sm:text-3xl font-extrabold text-rose-400">R$ 0,00</div>
+          <span id="card-commitmentRate" class="text-[11px] text-slate-400 mt-2 block">0% da renda gasta</span>
+        </div>
+
+        <!-- Balanço do Mês -->
+        <div class="glass-card glass-card-hover p-5 rounded-2xl">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Balanço do Mês</span>
+            <div class="p-2 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
+              <i data-lucide="scale" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <div id="card-monthBalance" class="text-2xl sm:text-3xl font-extrabold text-white">R$ 0,00</div>
+          <span class="text-[11px] text-slate-400 mt-2 block">Economia líquida gerada no mês</span>
+        </div>
+
+      </div>
+
+      <!-- PAINEL DE ALERTAS INTELIGENTES -->
+      <div id="smartAlertsContainer" class="hidden glass-card p-4 rounded-2xl border-amber-500/30 bg-amber-500/5 space-y-2">
+        <!-- Alertas gerados via JS -->
+      </div>
+
+      <!-- GRID DE RESUMO DE ORÇAMENTOS E METAS -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- RESUMO DE ORÇAMENTOS POR CATEGORIA -->
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <h2 class="font-bold text-base text-slate-200 flex items-center">
+              <i data-lucide="pie-chart" class="w-5 h-5 mr-2.5 text-emerald-400"></i>
+              Resumo de Orçamentos (Limites)
+            </h2>
+            <button onclick="switchTab('budgets')" class="text-xs text-emerald-400 hover:text-emerald-300 font-semibold underline">
+              Gerenciar Limites
+            </button>
+          </div>
+
+          <div id="dashboardBudgetsList" class="space-y-4 max-h-80 overflow-y-auto pr-1">
+            <!-- Injetado dinamicamente via JS -->
+          </div>
+        </div>
+
+        <!-- RESUMO DAS METAS FINANCEIRAS -->
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <h2 class="font-bold text-base text-slate-200 flex items-center">
+              <i data-lucide="target" class="w-5 h-5 mr-2.5 text-emerald-400"></i>
+              Progresso das Metas
+            </h2>
+            <button onclick="switchTab('goals')" class="text-xs text-emerald-400 hover:text-emerald-300 font-semibold underline">
+              Ver Todas
+            </button>
+          </div>
+
+          <div id="dashboardGoalsList" class="space-y-4 max-h-80 overflow-y-auto pr-1">
+            <!-- Injetado dinamicamente via JS -->
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- SEÇÃO 2: TRANSAÇÕES / LANÇAMENTOS (CRUD COMPLETO) -->
+    <section id="section-transactions" class="hidden space-y-4">
+
+      <div class="glass-card p-6 rounded-2xl space-y-4">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="font-bold text-lg text-white">Extrato & Lançamentos</h2>
+            <p class="text-xs text-slate-400">Gerencie, filtre, edite e cadastre novas receitas e despesas</p>
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <select 
+              id="categoryFilter" 
+              onchange="renderTransactions()"
+              class="bg-slate-900 border border-slate-800 text-xs font-semibold px-3.5 py-2 rounded-xl text-slate-300 focus:outline-none focus:border-emerald-500"
+            >
+              <option value="todas">Todas as Categorias</option>
+            </select>
+
+            <button 
+              onclick="openTransactionModal()" 
+              class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition"
+            >
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Novo Lançamento</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabela Responsiva de Transações -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-900/80 text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="px-4 py-3.5">Data</th>
+                <th class="px-4 py-3.5">Descrição</th>
+                <th class="px-4 py-3.5">Categoria</th>
+                <th class="px-4 py-3.5">Tipo</th>
+                <th class="px-4 py-3.5 text-right">Valor</th>
+                <th class="px-4 py-3.5 text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="transactionsTableBody" class="divide-y divide-slate-800/60">
+              <!-- Preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- SEÇÃO 3: GESTÃO DE ORÇAMENTOS (CRUD COMPLETO) -->
+    <section id="section-budgets" class="hidden space-y-6">
+      
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="font-bold text-xl text-white">Gestão de Orçamentos por Categoria</h2>
+          <p class="text-xs text-slate-400">Defina tetos de gastos para não ultrapassar seus limites mensais</p>
+        </div>
+        <button 
+          onclick="openBudgetModal()" 
+          class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-emerald-500/10"
+        >
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Novo Teto de Orçamento</span>
+        </button>
+      </div>
+
+      <div id="budgetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Injetado dinamicamente via JS -->
+      </div>
+
+    </section>
+
+    <!-- SEÇÃO 4: GESTÃO DE METAS (CRUD COMPLETO) -->
+    <section id="section-goals" class="hidden space-y-6">
+
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="font-bold text-xl text-white">Metas Financeiras</h2>
+          <p class="text-xs text-slate-400">Planeje reservas de emergência, viagens e grandes aquisições</p>
+        </div>
+        <button 
+          onclick="openGoalModal()" 
+          class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-emerald-500/10"
+        >
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Nova Meta</span>
+        </button>
+      </div>
+
+      <div id="goalsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Injetado dinamicamente via JS -->
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- RODAPÉ DA APLICAÇÃO -->
+  <footer class="bg-slate-900/60 border-t border-slate-800/80 py-4 text-center text-xs text-slate-500">
+    FinControl Pro &copy; 2026 — Desenvolvido para rodar direto no navegador sem dependência de servidores.
+  </footer>
+
+  <!-- MODAL: LANÇAMENTO (CRIAR / EDITAR) -->
+  <div id="transModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 id="transModalTitle" class="font-bold text-white text-base">Novo Lançamento</h3>
+        <button onclick="closeTransactionModal()" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="transForm" onsubmit="saveTransaction(event)" class="space-y-4">
+        <input type="hidden" id="transId" />
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Descrição</label>
+          <input 
+            type="text" 
+            id="transDesc" 
+            required 
+            placeholder="Ex: Salário, Supermercado, Internet" 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Valor (R$)</label>
+            <input 
+              type="number" 
+              step="0.01" 
+              id="transAmount" 
+              required 
+              placeholder="0,00" 
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Tipo</label>
+            <select 
+              id="transType" 
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+            >
+              <option value="expense">Saída (Despesa)</option>
+              <option value="income">Entrada (Receita)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Categoria</label>
+            <select 
+              id="transCategory" 
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+            >
+              <!-- Preenchido via JS -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Data</label>
+            <input 
+              type="date" 
+              id="transDate" 
+              required 
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+            />
+          </div>
+        </div>
+
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
+          <button 
+            type="button" 
+            onclick="closeTransactionModal()" 
+            class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            class="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition"
+          >
+            Salvar Lançamento
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- MODAL: ORÇAMENTO (CRIAR / EDITAR) -->
+  <div id="budgetModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 id="budgetModalTitle" class="font-bold text-white text-base">Definir Teto de Orçamento</h3>
+        <button onclick="closeBudgetModal()" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="budgetForm" onsubmit="saveBudget(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Categoria</label>
+          <select 
+            id="budgetCategory" 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+          >
+            <!-- Categorias injetadas via JS -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Limite Máximo Mensal (R$)</label>
+          <input 
+            type="number" 
+            step="0.01" 
+            id="budgetLimit" 
+            required 
+            placeholder="Ex: 1500,00" 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
+          <button 
+            type="button" 
+            onclick="closeBudgetModal()" 
+            class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            class="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition"
+          >
+            Salvar Limite
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- MODAL: META (CRIAR / EDITAR) -->
+  <div id="goalModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 id="goalModalTitle" class="font-bold text-white text-base">Nova Meta Financeira</h3>
+        <button onclick="closeGoalModal()" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="goalForm" onsubmit="saveGoal(event)" class="space-y-4">
+        <input type="hidden" id="goalId" />
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Título da Meta</label>
+          <input 
+            type="text" 
+            id="goalTitle" 
+            required 
+            placeholder="Ex: Reserva de Emergência, Viagem" 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Valor Alvo (R$)</label>
+            <input 
+              type="number" 
+              step="0.01" 
+              id="goalTarget" 
+              required 
+              placeholder="10000,00" 
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Valor Já Economizado (R$)</label>
+            <input 
+              type="number" 
+              step="0.01" 
+              id="goalCurrent" 
+              placeholder="0,00" 
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Categoria da Meta</label>
+          <input 
+            type="text" 
+            id="goalCategory" 
+            placeholder="Ex: Investimentos, Lazer, Tecnologia" 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
+          <button 
+            type="button" 
+            onclick="closeGoalModal()" 
+            class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            class="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition"
+          >
+            Salvar Meta
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- MODAL DE APORTE NA META -->
+  <div id="contributionModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base">Fazer Aporte na Meta</h3>
+        <button onclick="closeContributionModal()" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="submitContribution(event)" class="space-y-4">
+        <input type="hidden" id="contribGoalId" />
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Valor do Aporte (R$)</label>
+          <input 
+            type="number" 
+            step="0.01" 
+            id="contribAmount" 
+            required 
+            placeholder="100,00" 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
+          <button 
+            type="button" 
+            onclick="closeContributionModal()" 
+            class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            class="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition"
+          >
+            Adicionar Aporte
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT COMPLETO INTEGRADO -->
+  <script>
+    const categoriesList = ['Salário', 'Freelance', 'Moradia', 'Alimentação', 'Lazer', 'Educação', 'Saúde', 'Transporte', 'Outros'];
+
+    const initialTransactions = [
+      { id: '1', description: 'Salário Desenvolvedor Mobile', amount: 8500, type: 'income', category: 'Salário', date: '2026-11-01' },
+      { id: '2', description: 'Projeto Freelance Flutter', amount: 2200, type: 'income', category: 'Freelance', date: '2026-11-05' },
+      { id: '3', description: 'Supermercado Mensal', amount: 1150, type: 'expense', category: 'Alimentação', date: '2026-11-02' },
+      { id: '4', description: 'Aluguel & Condomínio', amount: 2400, type: 'expense', category: 'Moradia', date: '2026-11-03' },
+      { id: '5', description: 'Assinatura Anual Udemy', amount: 450, type: 'expense', category: 'Educação', date: '2026-11-04' },
+      { id: '6', description: 'Mensalidade Academia', amount: 120, type: 'expense', category: 'Saúde', date: '2026-11-06' },
+      { id: '7', description: 'Jantar Fim de Semana', amount: 280, type: 'expense', category: 'Lazer', date: '2026-11-08' },
+    ];
+
+    const initialBudgets = [
+      { category: 'Moradia', limit: 2500 },
+      { category: 'Alimentação', limit: 1400 },
+      { category: 'Lazer', limit: 800 },
+      { category: 'Educação', limit: 600 },
+      { category: 'Saúde', limit: 400 },
+      { category: 'Transporte', limit: 500 }
+    ];
+
+    const initialGoals = [
+      { id: '1', title: 'Reserva de Emergência', target: 20000, current: 14500, category: 'Investimentos' },
+      { id: '2', title: 'Troca de Smartphone/Notebook', target: 8000, current: 4200, category: 'Tecnologia' },
+      { id: '3', title: 'Viagem de Férias', target: 5000, current: 1800, category: 'Lazer' }
+    ];
+
+    let transactions = JSON.parse(localStorage.getItem('fin_transactions')) || initialTransactions;
+    let budgets = JSON.parse(localStorage.getItem('fin_budgets')) || initialBudgets;
+    let goals = JSON.parse(localStorage.getItem('fin_goals')) || initialGoals;
+    let activeTab = 'dashboard';
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
+    }
+
+    function saveState() {
+      localStorage.setItem('fin_transactions', JSON.stringify(transactions));
+      localStorage.setItem('fin_budgets', JSON.stringify(budgets));
+      localStorage.setItem('fin_goals', JSON.stringify(goals));
+      renderApp();
+    }
+
+    window.onload = function() {
+      const now = new Date();
+      const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const monthFilter = document.getElementById('monthFilter');
+      if (monthFilter) monthFilter.value = currentMonthStr;
+
+      populateCategoryDropdowns();
+      renderApp();
+    };
+
+    function populateCategoryDropdowns() {
+      const transCatSelect = document.getElementById('transCategory');
+      const filterCatSelect = document.getElementById('categoryFilter');
+      const budgetCatSelect = document.getElementById('budgetCategory');
+
+      if (transCatSelect) transCatSelect.innerHTML = categoriesList.map(c => `<option value="${c}">${c}</option>`).join('');
+      if (budgetCatSelect) budgetCatSelect.innerHTML = categoriesList.map(c => `<option value="${c}">${c}</option>`).join('');
+      if (filterCatSelect) {
+        filterCatSelect.innerHTML = '<option value="todas">Todas as Categorias</option>' + 
+          categoriesList.map(c => `<option value="${c}">${c}</option>`).join('');
+      }
+    }
+
+    function switchTab(tabName) {
+      activeTab = tabName;
+      ['dashboard', 'transactions', 'budgets', 'goals'].forEach(t => {
+        const btn = document.getElementById(`tabBtn-${t}`);
+        const sec = document.getElementById(`section-${t}`);
+        if (!btn || !sec) return;
+        if (t === tabName) {
+          btn.className = "flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition text-white bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm";
+          sec.classList.remove('hidden');
+        } else {
+          btn.className = "flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 rounded-lg transition";
+          sec.classList.add('hidden');
+        }
+      });
+      renderApp();
+    }
+
+    function renderApp() {
+      const monthFilterEl = document.getElementById('monthFilter');
+      if (!monthFilterEl) return;
+      const selectedMonth = monthFilterEl.value;
+
+      const monthTransactions = transactions.filter(t => t.date.startsWith(selectedMonth));
+
+      const monthIncome = monthTransactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
+      const monthExpense = monthTransactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
+      const monthBalance = monthIncome - monthExpense;
+
+      const totalBalance = transactions.reduce((acc, t) => t.type === 'income' ? acc + t.amount : acc - t.amount, 0);
+
+      document.getElementById('card-totalBalance').innerText = formatCurrency(totalBalance);
+      document.getElementById('card-monthIncome').innerText = formatCurrency(monthIncome);
+      document.getElementById('card-monthExpense').innerText = formatCurrency(monthExpense);
+      
+      const mbEl = document.getElementById('card-monthBalance');
+      mbEl.innerText = formatCurrency(monthBalance);
+      mbEl.className = `text-2xl sm:text-3xl font-extrabold ${monthBalance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+      
+      const commitRate = monthIncome > 0 ? ((monthExpense / monthIncome) * 100).toFixed(0) : 0;
+      document.getElementById('card-commitmentRate').innerText = `${commitRate}% da renda gasta no mês`;
+
+      renderDashboardBudgets(monthTransactions);
+      renderDashboardGoals();
+      renderSmartAlerts(monthTransactions);
+      renderTransactions();
+      renderBudgets(monthTransactions);
+      renderGoals();
+
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function renderSmartAlerts(monthTransactions) {
+      const alertContainer = document.getElementById('smartAlertsContainer');
+      const alerts = [];
+
+      budgets.forEach(b => {
+        const spent = monthTransactions.filter(t => t.type === 'expense' && t.category === b.category)
+                                        .reduce((acc, t) => acc + t.amount, 0);
+        if (spent > b.limit) {
+          alerts.push(`<div class="flex items-center text-xs font-semibold text-rose-400"><i data-lucide="alert-triangle" class="w-4 h-4 mr-2"></i> Orçamento de <strong>${b.category}</strong> estourado em ${formatCurrency(spent - b.limit)}!</div>`);
+        } else if (spent >= b.limit * 0.85) {
+          alerts.push(`<div class="flex items-center text-xs font-semibold text-amber-400"><i data-lucide="alert-circle" class="w-4 h-4 mr-2"></i> Orçamento de <strong>${b.category}</strong> atingiu ${(spent/b.limit*100).toFixed(0)}% do limite.</div>`);
+        }
+      });
+
+      if (alerts.length > 0) {
+        alertContainer.innerHTML = alerts.join('');
+        alertContainer.classList.remove('hidden');
+      } else {
+        alertContainer.classList.add('hidden');
+      }
+    }
+
+    function renderDashboardBudgets(monthTransactions) {
+      const container = document.getElementById('dashboardBudgetsList');
+      if (budgets.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Nenhum orçamento cadastrado.</p>`;
+        return;
+      }
+
+      container.innerHTML = budgets.map(b => {
+        const spent = monthTransactions.filter(t => t.type === 'expense' && t.category === b.category)
+                                        .reduce((acc, t) => acc + t.amount, 0);
+        const percent = Math.min(100, Math.round((spent / b.limit) * 100));
+        const isOver = spent > b.limit;
+        const color = isOver ? 'bg-rose-500' : percent >= 80 ? 'bg-amber-500' : 'bg-emerald-500';
+
+        return `
+          <div class="space-y-1 border-b border-slate-800/50 pb-2.5 last:border-0">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-slate-300">${b.category}</span>
+              <span class="font-bold text-slate-200">${formatCurrency(spent)} / <span class="text-slate-500">${formatCurrency(b.limit)}</span></span>
+            </div>
+            <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
+              <div class="h-full ${color} transition-all duration-300" style="width: ${percent}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderDashboardGoals() {
+      const container = document.getElementById('dashboardGoalsList');
+      if (goals.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Nenhuma meta cadastrada.</p>`;
+        return;
+      }
+
+      container.innerHTML = goals.map(g => {
+        const percent = Math.min(100, Math.round((g.current / g.target) * 100));
+        return `
+          <div class="space-y-1 border-b border-slate-800/50 pb-2.5 last:border-0">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-slate-300">${g.title}</span>
+              <span class="font-bold text-emerald-400">${percent}%</span>
+            </div>
+            <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
+              <div class="h-full bg-emerald-500 transition-all duration-300" style="width: ${percent}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTransactions() {
+      const tbody = document.getElementById('transactionsTableBody');
+      const selectedMonth = document.getElementById('monthFilter').value;
+      const selectedCat = document.getElementById('categoryFilter').value;
+
+      let filtered = transactions.filter(t => t.date.startsWith(selectedMonth));
+      if (selectedCat !== 'todas') {
+        filtered = filtered.filter(t => t.category === selectedCat);
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-xs text-slate-500">Nenhum lançamento encontrado para este período.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(t => `
+        <tr class="hover:bg-slate-900/60 transition">
+          <td class="px-4 py-3.5 text-xs text-slate-400 whitespace-nowrap">${t.date}</td>
+          <td class="px-4 py-3.5 font-semibold text-slate-100">${t.description}</td>
+          <td class="px-4 py-3.5"><span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-800 text-slate-300 border border-slate-700/50">${t.category}</span></td>
+          <td class="px-4 py-3.5"><span class="px-2.5 py-1 rounded-lg text-[11px] font-bold ${t.type === 'income' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">${t.type === 'income' ? 'Entrada' : 'Saída'}</span></td>
+          <td class="px-4 py-3.5 text-right font-extrabold whitespace-nowrap ${t.type === 'income' ? 'text-emerald-400' : 'text-slate-100'}">${t.type === 'income' ? '+' : '-'} ${formatCurrency(t.amount)}</td>
+          <td class="px-4 py-3.5 text-center">
+            <div class="flex items-center justify-center space-x-2">
+              <button onclick="openTransactionModal('${t.id}')" class="p-1 text-slate-400 hover:text-emerald-400 transition" title="Editar"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+              <button onclick="deleteTransaction('${t.id}')" class="p-1 text-slate-400 hover:text-rose-400 transition" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderBudgets(monthTransactions) {
+      const grid = document.getElementById('budgetsGrid');
+      if (budgets.length === 0) {
+        grid.innerHTML = `<p class="col-span-full text-center text-slate-500 py-8 text-xs">Nenhum orçamento configurado.</p>`;
+        return;
+      }
+
+      grid.innerHTML = budgets.map(b => {
+        const spent = monthTransactions.filter(t => t.type === 'expense' && t.category === b.category)
+                                        .reduce((acc, t) => acc + t.amount, 0);
+        const percent = Math.min(100, Math.round((spent / b.limit) * 100));
+        const isOver = spent > b.limit;
+        const color = isOver ? 'bg-rose-500' : percent >= 80 ? 'bg-amber-500' : 'bg-emerald-500';
+
+        return `
+          <div class="glass-card p-5 rounded-2xl space-y-4 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-start mb-2">
+                <h3 class="font-bold text-white text-base">${b.category}</h3>
+                <div class="flex space-x-1">
+                  <button onclick="openBudgetModal('${b.category}')" class="p-1 text-slate-400 hover:text-emerald-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                  <button onclick="deleteBudget('${b.category}')" class="p-1 text-slate-400 hover:text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+              <div class="flex justify-between items-baseline mt-4 mb-2">
+                <span class="text-xl font-extrabold text-white">${formatCurrency(spent)}</span>
+                <span class="text-xs text-slate-400">Limite: ${formatCurrency(b.limit)}</span>
+              </div>
+              <div class="w-full h-3 bg-slate-950 rounded-full overflow-hidden mb-2">
+                <div class="h-full ${color} transition-all duration-300" style="width: ${percent}%"></div>
+              </div>
+              <span class="text-[11px] ${isOver ? 'text-rose-400 font-bold' : 'text-slate-400'}">${isOver ? `Excedido em ${formatCurrency(spent - b.limit)}` : `${percent}% utilizado`}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderGoals() {
+      const grid = document.getElementById('goalsGrid');
+      if (goals.length === 0) {
+        grid.innerHTML = `<p class="col-span-full text-center text-slate-500 py-8 text-xs">Nenhuma meta cadastrada.</p>`;
+        return;
+      }
+
+      grid.innerHTML = goals.map(g => {
+        const percent = Math.min(100, Math.round((g.current / g.target) * 100));
+        return `
+          <div class="glass-card p-5 rounded-2xl space-y-4 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-start mb-2">
+                <h3 class="font-bold text-white text-base">${g.title}</h3>
+                <div class="flex space-x-1">
+                  <button onclick="openGoalModal('${g.id}')" class="p-1 text-slate-400 hover:text-emerald-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                  <button onclick="deleteGoal('${g.id}')" class="p-1 text-slate-400 hover:text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-slate-800 text-slate-300 rounded-md border border-slate-700/50">${g.category || 'Geral'}</span>
+              
+              <div class="flex justify-between items-baseline mt-4 mb-2">
+                <span class="text-xl font-extrabold text-white">${formatCurrency(g.current)}</span>
+                <span class="text-xs text-slate-400">Alvo: ${formatCurrency(g.target)}</span>
+              </div>
+              <div class="w-full h-3 bg-slate-950 rounded-full overflow-hidden mb-2">
+                <div class="h-full bg-emerald-500 transition-all duration-300" style="width: ${percent}%"></div>
+              </div>
+              <div class="flex justify-between text-[11px] text-slate-400">
+                <span>${percent}% concluído</span>
+                <span>Faltam ${formatCurrency(Math.max(0, g.target - g.current))}</span>
+              </div>
+            </div>
+
+            <button 
+              onclick="openContributionModal('${g.id}')"
+              class="w-full mt-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1"
+            >
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+              <span>Realizar Aporte</span>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openTransactionModal(id = null) {
+      const modal = document.getElementById('transModal');
+      const title = document.getElementById('transModalTitle');
+      
+      if (id) {
+        const item = transactions.find(t => t.id === id);
+        if (!item) return;
+        document.getElementById('transId').value = item.id;
+        document.getElementById('transDesc').value = item.description;
+        document.getElementById('transAmount').value = item.amount;
+        document.getElementById('transType').value = item.type;
+        document.getElementById('transCategory').value = item.category;
+        document.getElementById('transDate').value = item.date;
+        title.innerText = "Editar Lançamento";
+      } else {
+        document.getElementById('transForm').reset();
+        document.getElementById('transId').value = "";
+        document.getElementById('transDate').value = new Date().toISOString().split('T')[0];
+        title.innerText = "Novo Lançamento";
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeTransactionModal() {
+      document.getElementById('transModal').classList.add('hidden');
+    }
+
+    function saveTransaction(e) {
+      e.preventDefault();
+      const id = document.getElementById('transId').value;
+      const description = document.getElementById('transDesc').value;
+      const amount = parseFloat(document.getElementById('transAmount').value);
+      const type = document.getElementById('transType').value;
+      const category = document.getElementById('transCategory').value;
+      const date = document.getElementById('transDate').value;
+
+      if (id) {
+        transactions = transactions.map(t => t.id === id ? { id, description, amount, type, category, date } : t);
+      } else {
+        transactions.unshift({ id: Date.now().toString(), description, amount, type, category, date });
+      }
+
+      closeTransactionModal();
+      saveState();
+    }
+
+    function deleteTransaction(id) {
+      transactions = transactions.filter(t => t.id !== id);
+      saveState();
+    }
+
+    function openBudgetModal(category = null) {
+      const modal = document.getElementById('budgetModal');
+      const catSelect = document.getElementById('budgetCategory');
+      const limitInput = document.getElementById('budgetLimit');
+
+      if (category) {
+        const item = budgets.find(b => b.category === category);
+        catSelect.value = category;
+        limitInput.value = item ? item.limit : '';
+      } else {
+        document.getElementById('budgetForm').reset();
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeBudgetModal() {
+      document.getElementById('budgetModal').classList.add('hidden');
+    }
+
+    function saveBudget(e) {
+      e.preventDefault();
+      const category = document.getElementById('budgetCategory').value;
+      const limit = parseFloat(document.getElementById('budgetLimit').value);
+
+      const existingIndex = budgets.findIndex(b => b.category === category);
+      if (existingIndex >= 0) {
+        budgets[existingIndex].limit = limit;
+      } else {
+        budgets.push({ category, limit });
+      }
+
+      closeBudgetModal();
+      saveState();
+    }
+
+    function deleteBudget(category) {
+      budgets = budgets.filter(b => b.category !== category);
+      saveState();
+    }
+
+    function openGoalModal(id = null) {
+      const modal = document.getElementById('goalModal');
+      const title = document.getElementById('goalModalTitle');
+
+      if (id) {
+        const item = goals.find(g => g.id === id);
+        if (!item) return;
+        document.getElementById('goalId').value = item.id;
+        document.getElementById('goalTitle').value = item.title;
+        document.getElementById('goalTarget').value = item.target;
+        document.getElementById('goalCurrent').value = item.current;
+        document.getElementById('goalCategory').value = item.category || '';
+        title.innerText = "Editar Meta";
+      } else {
+        document.getElementById('goalForm').reset();
+        document.getElementById('goalId').value = "";
+        title.innerText = "Nova Meta";
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeGoalModal() {
+      document.getElementById('goalModal').classList.add('hidden');
+    }
+
+    function saveGoal(e) {
+      e.preventDefault();
+      const id = document.getElementById('goalId').value;
+      const title = document.getElementById('goalTitle').value;
+      const target = parseFloat(document.getElementById('goalTarget').value);
+      const current = parseFloat(document.getElementById('goalCurrent').value || 0);
+      const category = document.getElementById('goalCategory').value;
+
+      if (id) {
+        goals = goals.map(g => g.id === id ? { id, title, target, current, category } : g);
+      } else {
+        goals.push({ id: Date.now().toString(), title, target, current, category });
+      }
+
+      closeGoalModal();
+      saveState();
+    }
+
+    function deleteGoal(id) {
+      goals = goals.filter(g => g.id !== id);
+      saveState();
+    }
+
+    function openContributionModal(id) {
+      document.getElementById('contribGoalId').value = id;
+      document.getElementById('contribAmount').value = '';
+      document.getElementById('contributionModal').classList.remove('hidden');
+    }
+
+    function closeContributionModal() {
+      document.getElementById('contributionModal').classList.add('hidden');
+    }
+
+    function submitContribution(e) {
+      e.preventDefault();
+      const id = document.getElementById('contribGoalId').value;
+      const amount = parseFloat(document.getElementById('contribAmount').value);
+
+      goals = goals.map(g => g.id === id ? { ...g, current: g.current + amount } : g);
+      closeContributionModal();
+      saveState();
+    }
+
+    function runAutomations() {
+      const selectedMonth = document.getElementById('monthFilter').value;
+      const aluguelExiste = transactions.some(t => t.description.includes('Aluguel') && t.date.startsWith(selectedMonth));
+      
+      if (!aluguelExiste) {
+        transactions.unshift({
+          id: Date.now().toString(),
+          description: 'Aluguel & Condomínio (Recorrente Auto)',
+          amount: 2400,
+          type: 'expense',
+          category: 'Moradia',
+          date: `${selectedMonth}-05`
+        });
+        alert(`Automação executada! Lançamento recorrente de Aluguel adicionado ao mês ${selectedMonth}.`);
+        saveState();
+      } else {
+        alert("Automações checadas: Todos os custos recorrentes já estão lançados neste mês.");
+      }
+    }
+
+    function exportBackup() {
+      const data = { transactions, budgets, goals };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fincontrol_backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+    }
+
+    function importBackup(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const parsed = JSON.parse(evt.target.result);
+          if (parsed.transactions && parsed.budgets && parsed.goals) {
+            transactions = parsed.transactions;
+            budgets = parsed.budgets;
+            goals = parsed.goals;
+            saveState();
+            alert("Backup importado com sucesso!");
+          }
+        } catch (err) {
+          alert("Erro ao ler arquivo de backup inválido.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetDemoData() {
+      if (confirm("Deseja resetar e voltar para os dados de demonstração padrão?")) {
+        transactions = initialTransactions;
+        budgets = initialBudgets;
+        goals = initialGoals;
+        saveState();
+      }
+    }
+  </script>
+</body>
+</html>
