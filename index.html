@@ -1,12 +1,17 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FinControl Pro - Gestão Financeira Completa</title>
   
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS CDN com suporte a Dark Mode por classe -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
   
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -20,60 +25,74 @@
       width: 6px;
       height: 6px;
     }
-    ::-webkit-scrollbar-track {
-      background: #0f172a;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #475569;
-    }
+    .dark ::-webkit-scrollbar-track { background: #0f172a; }
+    .dark ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    /* Glassmorphism adaptável Light/Dark */
     .glass-card {
-      background: rgba(30, 41, 59, 0.7);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+    }
+    .dark .glass-card {
+      background: rgba(30, 41, 59, 0.72);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
     }
     .glass-card-hover {
       transition: all 0.25s ease-in-out;
     }
     .glass-card-hover:hover {
       transform: translateY(-2px);
-      border-color: rgba(16, 185, 129, 0.3);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      border-color: rgba(16, 185, 129, 0.4);
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 antialiased min-h-screen flex flex-col">
+<body class="bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- TOAST DE NOTIFICAÇÃO PERSONALIZADO -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
   <!-- NAVBAR / HEADER PRINCIPAL -->
-  <header class="bg-slate-900/90 border-b border-slate-800/80 sticky top-0 z-40 backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="p-2.5 bg-gradient-to-tr from-emerald-600 to-teal-400 rounded-xl shadow-lg shadow-emerald-500/20 text-slate-950">
+  <header class="bg-white/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800/80 sticky top-0 z-40 backdrop-blur-md transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+      <div class="flex items-center space-x-3 shrink-0">
+        <div class="p-2.5 bg-gradient-to-tr from-emerald-600 to-teal-400 rounded-xl shadow-lg shadow-emerald-500/20 text-white dark:text-slate-950">
           <i data-lucide="wallet" class="w-6 h-6 stroke-[2.5]"></i>
         </div>
         <div>
-          <h1 class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">FinControl Pro</h1>
-          <span class="text-[11px] text-emerald-400 font-semibold tracking-wide uppercase">Gestão Financeira & Automação</span>
+          <h1 class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-slate-500 dark:from-white dark:via-slate-200 dark:to-slate-400 bg-clip-text text-transparent">FinControl Pro</h1>
+          <span class="hidden sm:block text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold tracking-wide uppercase">Gestão Financeira & Automação</span>
         </div>
       </div>
 
       <!-- Ações Rápidas do Header -->
-      <div class="flex items-center space-x-2 sm:space-x-3">
+      <div class="flex items-center space-x-1.5 sm:space-x-2.5">
         <button 
           onclick="openTransactionModal()" 
-          class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-emerald-500/20 active:scale-95"
+          class="bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-bold px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-1.5 transition shadow-lg shadow-emerald-500/20 active:scale-95"
         >
           <i data-lucide="plus-circle" class="w-4 h-4"></i>
           <span>Novo Lançamento</span>
         </button>
 
+        <!-- Botão Alternar Tema Claro / Escuro -->
+        <button 
+          onclick="toggleTheme()" 
+          title="Alternar Modo Claro / Escuro" 
+          class="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-700 dark:text-amber-400 rounded-xl border border-slate-200 dark:border-slate-700/50 transition"
+        >
+          <i id="themeIcon" data-lucide="sun" class="w-4 h-4"></i>
+        </button>
+
         <button 
           onclick="exportBackup()" 
           title="Exportar Dados (Backup JSON)" 
-          class="p-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl border border-slate-700/50 transition"
+          class="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700/50 transition"
         >
           <i data-lucide="download" class="w-4 h-4"></i>
         </button>
@@ -81,16 +100,16 @@
         <button 
           onclick="document.getElementById('importFile').click()" 
           title="Importar Backup" 
-          class="p-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl border border-slate-700/50 transition"
+          class="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700/50 transition"
         >
           <i data-lucide="upload" class="w-4 h-4"></i>
         </button>
         <input type="file" id="importFile" class="hidden" accept=".json" onchange="importBackup(event)" />
 
         <button 
-          onclick="resetDemoData()" 
-          title="Restaurar dados iniciais de demonstração" 
-          class="p-2.5 bg-slate-800/80 hover:bg-slate-700 text-rose-400 hover:text-rose-300 rounded-xl border border-slate-700/50 transition"
+          onclick="confirmResetDemoData()" 
+          title="Redefinir todos os dados" 
+          class="p-2.5 bg-rose-50 hover:bg-rose-100 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-200 dark:border-slate-700/50 transition"
         >
           <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
         </button>
@@ -101,78 +120,85 @@
   <!-- CONTEÚDO PRINCIPAL -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 space-y-6 flex-grow w-full">
 
-    <!-- CONTROLES & FILTROS SUPERIORES -->
-    <div class="glass-card p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 border border-slate-800">
+    <!-- CONTROLES & NAVEGAÇÃO POR ABAS -->
+    <div class="glass-card p-3 sm:p-4 rounded-2xl flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
       
-      <!-- Navegação por Abas -->
-      <nav class="flex bg-slate-900/80 p-1.5 rounded-xl border border-slate-800/80 w-full md:w-auto">
+      <!-- Navegação por Abas com rolagem horizontal fluida no mobile/tablet e wrap limpo -->
+      <nav class="flex flex-wrap items-center gap-1.5 bg-slate-200/70 dark:bg-slate-900/90 p-1.5 rounded-xl border border-slate-300/60 dark:border-slate-800">
         <button 
+          type="button"
           id="tabBtn-dashboard"
           onclick="switchTab('dashboard')"
-          class="flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition text-white bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm"
+          class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition whitespace-nowrap"
         >
-          Dashboard Geral
+          Dashboard
         </button>
         <button 
+          type="button"
           id="tabBtn-transactions"
           onclick="switchTab('transactions')"
-          class="flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 rounded-lg transition"
+          class="px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg transition whitespace-nowrap"
         >
-          Lançamentos (CRUD)
+          Lançamentos
         </button>
         <button 
-          id="tabBtn-budgets"
-          onclick="switchTab('budgets')"
-          class="flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 rounded-lg transition"
-        >
-          Orçamentos
-        </button>
-        <button 
+          type="button"
           id="tabBtn-cards"
           onclick="switchTab('cards')"
-          class="flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 rounded-lg transition"
+          class="px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg transition whitespace-nowrap"
         >
           Cartões
         </button>
         <button 
+          type="button"
           id="tabBtn-banks"
           onclick="switchTab('banks')"
-          class="flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 rounded-lg transition"
+          class="px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg transition whitespace-nowrap"
         >
-          Bancos & Transferências
+          Bancos
         </button>
         <button 
+          type="button"
+          id="tabBtn-budgets"
+          onclick="switchTab('budgets')"
+          class="px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg transition whitespace-nowrap"
+        >
+          Orçamentos
+        </button>
+        <button 
+          type="button"
           id="tabBtn-goals"
           onclick="switchTab('goals')"
-          class="flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 rounded-lg transition"
+          class="px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg transition whitespace-nowrap"
         >
           Metas
         </button>
       </nav>
 
       <!-- Filtro de Período & Automações -->
-      <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+      <div class="flex flex-wrap items-center gap-2.5 justify-between sm:justify-end">
         
         <!-- Seleção de Mês -->
-        <div class="flex items-center space-x-2 bg-slate-900/80 border border-slate-800 px-3.5 py-2 rounded-xl text-xs sm:text-sm">
-          <i data-lucide="calendar" class="w-4 h-4 text-emerald-400"></i>
-          <span class="text-slate-400 font-medium">Mês:</span>
+        <div class="flex items-center space-x-2 bg-white dark:bg-slate-900/90 border border-slate-300 dark:border-slate-800 px-3.5 py-2 rounded-xl text-xs sm:text-sm">
+          <i data-lucide="calendar" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+          <span class="text-slate-500 dark:text-slate-400 font-medium">Mês:</span>
           <input 
             type="month" 
             id="monthFilter" 
             onchange="renderApp()"
-            class="bg-transparent border-none text-white font-bold focus:outline-none cursor-pointer"
+            class="bg-transparent border-none text-slate-900 dark:text-white font-bold focus:outline-none cursor-pointer"
           />
         </div>
 
         <!-- Botão de Automação Rápida -->
         <button 
+          type="button"
           onclick="runAutomations()" 
-          title="Processa contas recorrentes do mês e atualiza o saldo automático"
-          class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-semibold px-3.5 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition"
+          title="Processa contas recorrentes do mês automaticamente"
+          class="bg-indigo-600/10 hover:bg-indigo-600/20 dark:bg-indigo-600/20 dark:hover:bg-indigo-600/30 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 font-semibold px-3.5 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition"
         >
-          <i data-lucide="zap" class="w-4 h-4 text-indigo-400"></i>
-          <span class="hidden sm:inline">Executar Automações</span>
+          <i data-lucide="zap" class="w-4 h-4 text-indigo-600 dark:text-indigo-400"></i>
+          <span>Automações</span>
         </button>
       </div>
 
@@ -187,56 +213,72 @@
         <!-- Saldo Geral em Conta -->
         <div class="glass-card glass-card-hover p-5 rounded-2xl relative overflow-hidden">
           <div class="flex justify-between items-start mb-3">
-            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Saldo Geral Disponível</span>
-            <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+            <span class="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Saldo Total em Bancos</span>
+            <div class="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20">
               <i data-lucide="landmark" class="w-5 h-5"></i>
             </div>
           </div>
-          <div id="card-totalBalance" class="text-2xl sm:text-3xl font-extrabold text-white">R$ 0,00</div>
-          <p class="text-[11px] text-slate-400 mt-2">Saldo líquido acumulado total</p>
+          <div id="card-totalBalance" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">R$ 0,00</div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2">Soma de todas as contas bancárias</p>
         </div>
 
         <!-- Receitas do Mês -->
         <div class="glass-card glass-card-hover p-5 rounded-2xl">
           <div class="flex justify-between items-start mb-3">
-            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Entradas (Mês Selecionado)</span>
-            <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+            <span class="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Entradas no Mês</span>
+            <div class="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20">
               <i data-lucide="trending-up" class="w-5 h-5"></i>
             </div>
           </div>
-          <div id="card-monthIncome" class="text-2xl sm:text-3xl font-extrabold text-emerald-400">R$ 0,00</div>
-          <span class="text-[11px] text-slate-400 mt-2 block">Total de receitas confirmadas</span>
+          <div id="card-monthIncome" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">R$ 0,00</div>
+          <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 block">Receitas confirmadas no período</span>
         </div>
 
         <!-- Despesas do Mês -->
         <div class="glass-card glass-card-hover p-5 rounded-2xl">
           <div class="flex justify-between items-start mb-3">
-            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Saídas (Mês Selecionado)</span>
-            <div class="p-2 bg-rose-500/10 text-rose-400 rounded-xl border border-rose-500/20">
+            <span class="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Saídas no Mês</span>
+            <div class="p-2 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-500/20">
               <i data-lucide="trending-down" class="w-5 h-5"></i>
             </div>
           </div>
-          <div id="card-monthExpense" class="text-2xl sm:text-3xl font-extrabold text-rose-400">R$ 0,00</div>
-          <span id="card-commitmentRate" class="text-[11px] text-slate-400 mt-2 block">0% da renda gasta</span>
+          <div id="card-monthExpense" class="text-2xl sm:text-3xl font-extrabold text-rose-600 dark:text-rose-400">R$ 0,00</div>
+          <span id="card-commitmentRate" class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 block">0% da renda comprometida</span>
         </div>
 
-        <!-- Balanço do Mês -->
+        <!-- Total Faturas de Cartões -->
         <div class="glass-card glass-card-hover p-5 rounded-2xl">
           <div class="flex justify-between items-start mb-3">
-            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Balanço do Mês</span>
-            <div class="p-2 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
-              <i data-lucide="scale" class="w-5 h-5"></i>
+            <span class="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Faturas Abertas (Cartões)</span>
+            <div class="p-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-500/20">
+              <i data-lucide="credit-card" class="w-5 h-5"></i>
             </div>
           </div>
-          <div id="card-monthBalance" class="text-2xl sm:text-3xl font-extrabold text-white">R$ 0,00</div>
-          <span class="text-[11px] text-slate-400 mt-2 block">Economia líquida gerada no mês</span>
+          <div id="card-totalInvoices" class="text-2xl sm:text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">R$ 0,00</div>
+          <span id="card-monthBalanceLabel" class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 block">Balanço líquido: R$ 0,00</span>
         </div>
 
       </div>
 
       <!-- PAINEL DE ALERTAS INTELIGENTES -->
-      <div id="smartAlertsContainer" class="hidden glass-card p-4 rounded-2xl border-amber-500/30 bg-amber-500/5 space-y-2">
+      <div id="smartAlertsContainer" class="hidden glass-card p-4 rounded-2xl border-amber-500/40 bg-amber-500/10 space-y-2">
         <!-- Alertas gerados via JS -->
+      </div>
+
+      <!-- RESUMO DE CARTÕES NO DASHBOARD -->
+      <div class="glass-card p-6 rounded-2xl space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+          <h2 class="font-bold text-base text-slate-800 dark:text-slate-200 flex items-center">
+            <i data-lucide="credit-card" class="w-5 h-5 mr-2.5 text-indigo-600 dark:text-indigo-400"></i>
+            Acompanhamento de Cartões & Limites de Gasto
+          </h2>
+          <button type="button" onclick="switchTab('cards')" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">
+            Gerenciar Cartões
+          </button>
+        </div>
+        <div id="dashboardCardsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Injetado via JS -->
+        </div>
       </div>
 
       <!-- GRID DE RESUMO DE ORÇAMENTOS E METAS -->
@@ -244,35 +286,35 @@
 
         <!-- RESUMO DE ORÇAMENTOS POR CATEGORIA -->
         <div class="glass-card p-6 rounded-2xl space-y-4">
-          <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-            <h2 class="font-bold text-base text-slate-200 flex items-center">
-              <i data-lucide="pie-chart" class="w-5 h-5 mr-2.5 text-emerald-400"></i>
-              Resumo de Orçamentos (Limites)
+          <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+            <h2 class="font-bold text-base text-slate-800 dark:text-slate-200 flex items-center">
+              <i data-lucide="pie-chart" class="w-5 h-5 mr-2.5 text-emerald-600 dark:text-emerald-400"></i>
+              Orçamentos por Categoria
             </h2>
-            <button onclick="switchTab('budgets')" class="text-xs text-emerald-400 hover:text-emerald-300 font-semibold underline">
+            <button type="button" onclick="switchTab('budgets')" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">
               Gerenciar Limites
             </button>
           </div>
 
           <div id="dashboardBudgetsList" class="space-y-4 max-h-80 overflow-y-auto pr-1">
-            <!-- Injetado dinamicamente via JS -->
+            <!-- Injetado via JS -->
           </div>
         </div>
 
         <!-- RESUMO DAS METAS FINANCEIRAS -->
         <div class="glass-card p-6 rounded-2xl space-y-4">
-          <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-            <h2 class="font-bold text-base text-slate-200 flex items-center">
-              <i data-lucide="target" class="w-5 h-5 mr-2.5 text-emerald-400"></i>
+          <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+            <h2 class="font-bold text-base text-slate-800 dark:text-slate-200 flex items-center">
+              <i data-lucide="target" class="w-5 h-5 mr-2.5 text-emerald-600 dark:text-emerald-400"></i>
               Progresso das Metas
             </h2>
-            <button onclick="switchTab('goals')" class="text-xs text-emerald-400 hover:text-emerald-300 font-semibold underline">
+            <button type="button" onclick="switchTab('goals')" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">
               Ver Todas
             </button>
           </div>
 
           <div id="dashboardGoalsList" class="space-y-4 max-h-80 overflow-y-auto pr-1">
-            <!-- Injetado dinamicamente via JS -->
+            <!-- Injetado via JS -->
           </div>
         </div>
 
@@ -285,24 +327,25 @@
 
       <div class="glass-card p-6 rounded-2xl space-y-4">
         
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
-            <h2 class="font-bold text-lg text-white">Extrato & Lançamentos</h2>
-            <p class="text-xs text-slate-400">Gerencie, filtre, edite e cadastre novas receitas e despesas</p>
+            <h2 class="font-bold text-lg text-slate-900 dark:text-white">Extrato & Lançamentos</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Lance despesas na fatura do cartão, receitas direto nos bancos ou transferências</p>
           </div>
 
-          <div class="flex items-center space-x-3">
+          <div class="flex flex-wrap items-center gap-3">
             <select 
               id="categoryFilter" 
               onchange="renderTransactions()"
-              class="bg-slate-900 border border-slate-800 text-xs font-semibold px-3.5 py-2 rounded-xl text-slate-300 focus:outline-none focus:border-emerald-500"
+              class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs font-semibold px-3.5 py-2 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:border-emerald-500"
             >
               <option value="todas">Todas as Categorias</option>
             </select>
 
             <button 
+              type="button"
               onclick="openTransactionModal()" 
-              class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition"
+              class="bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition"
             >
               <i data-lucide="plus" class="w-4 h-4"></i>
               <span>Novo Lançamento</span>
@@ -312,18 +355,19 @@
 
         <!-- Tabela Responsiva de Transações -->
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm text-slate-300">
-            <thead class="bg-slate-900/80 text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-800">
+          <table class="w-full text-left text-sm text-slate-700 dark:text-slate-300">
+            <thead class="bg-slate-200/70 dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200 dark:border-slate-800">
               <tr>
                 <th class="px-4 py-3.5">Data</th>
                 <th class="px-4 py-3.5">Descrição</th>
+                <th class="px-4 py-3.5">Destino / Origem</th>
                 <th class="px-4 py-3.5">Categoria</th>
                 <th class="px-4 py-3.5">Tipo</th>
                 <th class="px-4 py-3.5 text-right">Valor</th>
                 <th class="px-4 py-3.5 text-center">Ações</th>
               </tr>
             </thead>
-            <tbody id="transactionsTableBody" class="divide-y divide-slate-800/60">
+            <tbody id="transactionsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60">
               <!-- Preenchido via JS -->
             </tbody>
           </table>
@@ -333,39 +377,17 @@
 
     </section>
 
-    <!-- SEÇÃO 3: GESTÃO DE ORÇAMENTOS (CRUD COMPLETO) -->
-    <section id="section-budgets" class="hidden space-y-6">
-      
-      <div class="flex justify-between items-center">
-        <div>
-          <h2 class="font-bold text-xl text-white">Gestão de Orçamentos por Categoria</h2>
-          <p class="text-xs text-slate-400">Defina tetos de gastos para não ultrapassar seus limites mensais</p>
-        </div>
-        <button 
-          onclick="openBudgetModal()" 
-          class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-emerald-500/10"
-        >
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          <span>Novo Teto de Orçamento</span>
-        </button>
-      </div>
-
-      <div id="budgetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Injetado dinamicamente via JS -->
-      </div>
-
-    </section>
-
-    <!-- SEÇÃO NOVA 3.5: GESTÃO DE CARTÕES DE CRÉDITO -->
+    <!-- SEÇÃO 3: GESTÃO DE CARTÕES DE CRÉDITO -->
     <section id="section-cards" class="hidden space-y-6">
-      <div class="flex justify-between items-center">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 class="font-bold text-xl text-white">Cartões de Crédito & Faturas</h2>
-          <p class="text-xs text-slate-400">Gerencie seus limites, acompanhe o gasto da fatura atual e Quite com 1 clique</p>
+          <h2 class="font-bold text-xl text-slate-900 dark:text-white">Cartões de Crédito & Controle de Gastos</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Defina o limite total do cartão e uma meta máxima de gasto mensal (ex: R$ 600,00)</p>
         </div>
         <button 
+          type="button"
           onclick="openCardModal()" 
-          class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-emerald-500/10"
+          class="bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-emerald-500/10 self-start sm:self-auto"
         >
           <i data-lucide="plus" class="w-4 h-4"></i>
           <span>Novo Cartão</span>
@@ -373,28 +395,30 @@
       </div>
 
       <div id="cardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Injetado dinamicamente via JS -->
+        <!-- Injetado via JS -->
       </div>
     </section>
 
-    <!-- SEÇÃO NOVA 3.6: BANCOS & TRANSFERÊNCIAS -->
+    <!-- SEÇÃO 4: BANCOS & TRANSFERÊNCIAS -->
     <section id="section-banks" class="hidden space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 class="font-bold text-xl text-white">Contas Bancárias & Transferências</h2>
-          <p class="text-xs text-slate-400">Controle o saldo de cada instituição e realize transferências entre suas contas</p>
+          <h2 class="font-bold text-xl text-slate-900 dark:text-white">Contas Bancárias & Transferências</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Gerencie o saldo de cada banco (Corrente, Poupança, Investimentos) e transfira valores</p>
         </div>
-        <div class="flex space-x-3">
+        <div class="flex flex-wrap gap-2.5">
           <button 
+            type="button"
             onclick="openTransferModal()" 
             class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-indigo-600/20"
           >
             <i data-lucide="arrow-right-left" class="w-4 h-4"></i>
-            <span>Transferir Saldo</span>
+            <span>Transferir entre Bancos</span>
           </button>
           <button 
+            type="button"
             onclick="openBankModal()" 
-            class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-emerald-500/10"
+            class="bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-emerald-500/10"
           >
             <i data-lucide="plus" class="w-4 h-4"></i>
             <span>Nova Conta</span>
@@ -403,21 +427,46 @@
       </div>
 
       <div id="banksGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Injetado dinamicamente via JS -->
+        <!-- Injetado via JS -->
       </div>
     </section>
 
-    <!-- SEÇÃO 4: GESTÃO DE METAS (CRUD COMPLETO) -->
-    <section id="section-goals" class="hidden space-y-6">
-
-      <div class="flex justify-between items-center">
+    <!-- SEÇÃO 5: GESTÃO DE ORÇAMENTOS (CRUD COMPLETO) -->
+    <section id="section-budgets" class="hidden space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 class="font-bold text-xl text-white">Metas Financeiras</h2>
-          <p class="text-xs text-slate-400">Planeje reservas de emergência, viagens e grandes aquisições</p>
+          <h2 class="font-bold text-xl text-slate-900 dark:text-white">Orçamentos por Categoria</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Defina tetos de gastos para não ultrapassar seus limites mensais</p>
         </div>
         <button 
+          type="button"
+          onclick="openBudgetModal()" 
+          class="bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-emerald-500/10 self-start sm:self-auto"
+        >
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Novo Teto de Orçamento</span>
+        </button>
+      </div>
+
+      <div id="budgetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Injetado via JS -->
+      </div>
+
+    </section>
+
+    <!-- SEÇÃO 6: GESTÃO DE METAS (CRUD COMPLETO & SINCRONIZAÇÃO COM BANCOS) -->
+    <section id="section-goals" class="hidden space-y-6">
+
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="font-bold text-xl text-slate-900 dark:text-white">Metas Financeiras</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Vincule uma conta (ex: Poupança) ou movimente entradas e retiradas na sua meta</p>
+        </div>
+        <button 
+          type="button"
           onclick="openGoalModal()" 
-          class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-emerald-500/10"
+          class="bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center space-x-2 transition shadow-lg shadow-emerald-500/10 self-start sm:self-auto"
         >
           <i data-lucide="plus" class="w-4 h-4"></i>
           <span>Nova Meta</span>
@@ -425,7 +474,7 @@
       </div>
 
       <div id="goalsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Injetado dinamicamente via JS -->
+        <!-- Injetado via JS -->
       </div>
 
     </section>
@@ -433,17 +482,48 @@
   </main>
 
   <!-- RODAPÉ DA APLICAÇÃO -->
-  <footer class="bg-slate-900/60 border-t border-slate-800/80 py-4 text-center text-xs text-slate-500">
-    FinControl Pro &copy; 2026 — Desenvolvido para rodar direto no navegador sem dependência de servidores.
+  <footer class="bg-white/60 dark:bg-slate-900/60 border-t border-slate-200 dark:border-slate-800/80 py-4 text-center text-xs text-slate-500">
+    FinControl Pro &copy; 2026 — Gestão Financeira Inteligente & Offline-First.
   </footer>
+
+  <!-- MODAL: CONFIRMAÇÃO SEGURA (SUBSTITUI CONFIRM NATIVO) -->
+  <div id="confirmModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center space-x-3 text-rose-600 dark:text-rose-400">
+        <div class="p-2.5 bg-rose-500/10 rounded-xl">
+          <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+        </div>
+        <h3 id="confirmModalTitle" class="font-bold text-lg text-slate-900 dark:text-white">Atenção!</h3>
+      </div>
+      <p id="confirmModalMessage" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+        Tem certeza que deseja continuar?
+      </p>
+      <div class="pt-3 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-800">
+        <button 
+          type="button" 
+          onclick="closeConfirmModal()" 
+          class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 transition"
+        >
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          id="confirmModalActionBtn"
+          class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 transition shadow-lg shadow-rose-600/20"
+        >
+          Sim, Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: LANÇAMENTO (CRIAR / EDITAR) -->
   <div id="transModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+    <div class="glass-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 id="transModalTitle" class="font-bold text-white text-base">Novo Lançamento</h3>
-        <button onclick="closeTransactionModal()" class="text-slate-400 hover:text-white transition">
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+        <h3 id="transModalTitle" class="font-bold text-slate-900 dark:text-white text-base">Novo Lançamento</h3>
+        <button type="button" onclick="closeTransactionModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
@@ -452,72 +532,88 @@
         <input type="hidden" id="transId" />
 
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Descrição</label>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Tipo de Movimentação</label>
+          <select 
+            id="transType" 
+            onchange="handleTransTypeChange()"
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+          >
+            <option value="expense">Saída (Despesa / Compra no Cartão)</option>
+            <option value="income">Entrada (Receita / Depósito em Banco)</option>
+            <option value="bank_deposit">Transferência Direta / Depósito para Banco</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Descrição</label>
           <input 
             type="text" 
             id="transDesc" 
             required 
-            placeholder="Ex: Salário, Supermercado, Internet" 
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+            placeholder="Ex: Supermercado, Salário, Aporte Poupança" 
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
           />
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Valor (R$)</label>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Valor (R$)</label>
             <input 
               type="number" 
               step="0.01" 
+              min="0.01"
               id="transAmount" 
               required 
               placeholder="0,00" 
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
             />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Tipo</label>
-            <select 
-              id="transType" 
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
-            >
-              <option value="expense">Saída (Despesa)</option>
-              <option value="income">Entrada (Receita)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Categoria</label>
-            <select 
-              id="transCategory" 
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
-            >
-              <!-- Preenchido via JS -->
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Data</label>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Data</label>
             <input 
               type="date" 
               id="transDate" 
               required 
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
             />
           </div>
         </div>
 
-        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
+        <!-- Seleção de Forma de Pagamento / Conta / Cartão -->
+        <div id="transTargetWrapper">
+          <label id="transTargetLabel" class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Onde lançar? (Conta ou Fatura do Cartão)</label>
+          <select 
+            id="transTargetSelect" 
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+          >
+            <!-- Preenchido via JS com Bancos e Cartões -->
+          </select>
+          <p id="transTargetHint" class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+            Ao escolher um cartão, o valor será somado automaticamente na fatura aberta.
+          </p>
+        </div>
+
+        <div id="transCategoryWrapper">
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Categoria</label>
+          <select 
+            id="transCategory" 
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+          >
+            <!-- Preenchido via JS -->
+          </select>
+        </div>
+
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-800">
           <button 
             type="button" 
             onclick="closeTransactionModal()" 
-            class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition"
+            class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-200 dark:bg-slate-800 transition"
           >
             Cancelar
           </button>
           <button 
             type="submit" 
-            class="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition"
+            class="px-5 py-2 rounded-xl text-xs font-bold text-white dark:text-slate-950 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 transition"
           >
             Salvar Lançamento
           </button>
@@ -529,52 +625,40 @@
 
   <!-- MODAL: ORÇAMENTO (CRIAR / EDITAR) -->
   <div id="budgetModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+    <div class="glass-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
       
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 id="budgetModalTitle" class="font-bold text-white text-base">Definir Teto de Orçamento</h3>
-        <button onclick="closeBudgetModal()" class="text-slate-400 hover:text-white transition">
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+        <h3 id="budgetModalTitle" class="font-bold text-slate-900 dark:text-white text-base">Definir Teto de Orçamento</h3>
+        <button type="button" onclick="closeBudgetModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
       <form id="budgetForm" onsubmit="saveBudget(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Categoria</label>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Categoria</label>
           <select 
             id="budgetCategory" 
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
           >
-            <!-- Categorias injetadas via JS -->
           </select>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Limite Máximo Mensal (R$)</label>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Limite Máximo Mensal (R$)</label>
           <input 
             type="number" 
             step="0.01" 
             id="budgetLimit" 
             required 
             placeholder="Ex: 1500,00" 
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
           />
         </div>
 
-        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
-          <button 
-            type="button" 
-            onclick="closeBudgetModal()" 
-            class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition"
-          >
-            Cancelar
-          </button>
-          <button 
-            type="submit" 
-            class="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition"
-          >
-            Salvar Limite
-          </button>
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-800">
+          <button type="button" onclick="closeBudgetModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white dark:text-slate-950 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 transition">Salvar Limite</button>
         </div>
       </form>
 
@@ -583,11 +667,11 @@
 
   <!-- MODAL: META (CRIAR / EDITAR) -->
   <div id="goalModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+    <div class="glass-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
       
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 id="goalModalTitle" class="font-bold text-white text-base">Nova Meta Financeira</h3>
-        <button onclick="closeGoalModal()" class="text-slate-400 hover:text-white transition">
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+        <h3 id="goalModalTitle" class="font-bold text-slate-900 dark:text-white text-base">Nova Meta Financeira</h3>
+        <button type="button" onclick="closeGoalModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
@@ -596,108 +680,114 @@
         <input type="hidden" id="goalId" />
 
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Título da Meta</label>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Título da Meta</label>
           <input 
             type="text" 
             id="goalTitle" 
             required 
-            placeholder="Ex: Reserva de Emergência, Viagem" 
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+            placeholder="Ex: Reserva de Emergência, Meta Mensal 15k" 
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
           />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Vincular a uma Conta Bancária (Opcional)</label>
+          <select 
+            id="goalLinkedBank" 
+            onchange="handleGoalBankLinkChange()"
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+          >
+            <option value="">Sem vínculo (controle manual)</option>
+          </select>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+            Se vinculada (ex: Poupança), o progresso reflete o saldo dessa conta automaticamente!
+          </p>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Valor Alvo (R$)</label>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Valor Alvo (R$)</label>
             <input 
               type="number" 
               step="0.01" 
               id="goalTarget" 
               required 
-              placeholder="10000,00" 
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+              placeholder="15000,00" 
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
             />
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Valor Já Economizado (R$)</label>
+          <div id="goalCurrentWrapper">
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Valor Atual Guardado (R$)</label>
             <input 
               type="number" 
               step="0.01" 
               id="goalCurrent" 
-              placeholder="0,00" 
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+              placeholder="5000,00" 
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
             />
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Categoria da Meta</label>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Categoria da Meta</label>
           <input 
             type="text" 
             id="goalCategory" 
-            placeholder="Ex: Investimentos, Lazer, Tecnologia" 
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+            placeholder="Ex: Poupança, Investimentos, Viagem" 
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
           />
         </div>
 
-        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
-          <button 
-            type="button" 
-            onclick="closeGoalModal()" 
-            class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition"
-          >
-            Cancelar
-          </button>
-          <button 
-            type="submit" 
-            class="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition"
-          >
-            Salvar Meta
-          </button>
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-800">
+          <button type="button" onclick="closeGoalModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white dark:text-slate-950 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 transition">Salvar Meta</button>
         </div>
       </form>
 
     </div>
   </div>
 
-  <!-- MODAL DE APORTE NA META -->
+  <!-- MODAL DE MOVIMENTAÇÃO NA META (ADICIONAR OU RETIRAR DINHEIRO) -->
   <div id="contributionModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 class="font-bold text-white text-base">Fazer Aporte na Meta</h3>
-        <button onclick="closeContributionModal()" class="text-slate-400 hover:text-white transition">
+    <div class="glass-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+        <h3 id="contribModalTitle" class="font-bold text-slate-900 dark:text-white text-base">Movimentar Meta</h3>
+        <button type="button" onclick="closeContributionModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
       <form onsubmit="submitContribution(event)" class="space-y-4">
         <input type="hidden" id="contribGoalId" />
+        
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Valor do Aporte (R$)</label>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Operação</label>
+          <select id="contribOperation" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500">
+            <option value="add">+ Adicionar Dinheiro (Aporte)</option>
+            <option value="sub">- Retirar Dinheiro (Resgate)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Valor (R$)</label>
           <input 
             type="number" 
             step="0.01" 
+            min="0.01"
             id="contribAmount" 
             required 
-            placeholder="100,00" 
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"
+            placeholder="500,00" 
+            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
           />
         </div>
 
-        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
-          <button 
-            type="button" 
-            onclick="closeContributionModal()" 
-            class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition"
-          >
-            Cancelar
-          </button>
-          <button 
-            type="submit" 
-            class="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition"
-          >
-            Adicionar Aporte
-          </button>
+        <p id="contribBankNotice" class="text-[11px] text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 p-2.5 rounded-xl hidden">
+          <!-- Aviso se a meta estiver vinculada a um banco -->
+        </p>
+
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-800">
+          <button type="button" onclick="closeContributionModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white dark:text-slate-950 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 transition">Confirmar</button>
         </div>
       </form>
     </div>
@@ -705,32 +795,37 @@
 
   <!-- MODAL: CARTÃO DE CRÉDITO -->
   <div id="cardModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 id="cardModalTitle" class="font-bold text-white text-base">Novo Cartão de Crédito</h3>
-        <button onclick="closeCardModal()" class="text-slate-400 hover:text-white transition">
+    <div class="glass-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+        <h3 id="cardModalTitle" class="font-bold text-slate-900 dark:text-white text-base">Novo Cartão de Crédito</h3>
+        <button type="button" onclick="closeCardModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
       <form id="cardForm" onsubmit="saveCard(event)" class="space-y-4">
         <input type="hidden" id="cardId" />
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Nome do Cartão / Banco</label>
-          <input type="text" id="cardName" required placeholder="Ex: Nubank Violeta, Itaú Click" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Nome do Cartão / Banco</label>
+          <input type="text" id="cardName" required placeholder="Ex: Nubank Roxinho, Itaú Click" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Limite Total (R$)</label>
-            <input type="number" step="0.01" id="cardLimit" required placeholder="5000,00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Limite Total do Cartão (R$)</label>
+            <input type="number" step="0.01" id="cardLimit" required placeholder="5000,00" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Fatura Atual (R$)</label>
-            <input type="number" step="0.01" id="cardUsed" placeholder="0,00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Teto de Gasto Mensal (R$)</label>
+            <input type="number" step="0.01" id="cardSpendGoal" placeholder="Ex: 600,00" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
-        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
-          <button type="button" onclick="closeCardModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancelar</button>
-          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition">Salvar Cartão</button>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Fatura Atual (R$)</label>
+          <input type="number" step="0.01" id="cardUsed" placeholder="0,00" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Ao registrar lançamentos no cartão, este valor sobe automaticamente.</p>
+        </div>
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-800">
+          <button type="button" onclick="closeCardModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white dark:text-slate-950 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 transition">Salvar Cartão</button>
         </div>
       </form>
     </div>
@@ -738,26 +833,25 @@
 
   <!-- MODAL: PAGAR FATURA -->
   <div id="payInvoiceModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 class="font-bold text-white text-base">Pagar Fatura de Cartão</h3>
-        <button onclick="closePayInvoiceModal()" class="text-slate-400 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <div class="glass-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+        <h3 class="font-bold text-slate-900 dark:text-white text-base">Pagar Fatura de Cartão</h3>
+        <button type="button" onclick="closePayInvoiceModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <form onsubmit="submitPayInvoice(event)" class="space-y-4">
         <input type="hidden" id="payCardId" />
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Valor da Fatura a Pagar</label>
-          <input type="number" step="0.01" id="payInvoiceAmount" readonly class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm font-bold text-rose-400 cursor-not-allowed" />
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Valor da Fatura a Pagar</label>
+          <input type="number" step="0.01" id="payInvoiceAmount" readonly class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm font-bold text-rose-600 dark:text-rose-400 cursor-not-allowed" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Debitar da Conta</label>
-          <select id="payInvoiceBankSelect" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
-            <!-- Injetado via JS -->
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Debitar da Conta</label>
+          <select id="payInvoiceBankSelect" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500">
           </select>
         </div>
-        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
-          <button type="button" onclick="closePayInvoiceModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancelar</button>
-          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition">Confirmar Pagamento</button>
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-800">
+          <button type="button" onclick="closePayInvoiceModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white dark:text-slate-950 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 transition">Confirmar Pagamento</button>
         </div>
       </form>
     </div>
@@ -765,24 +859,24 @@
 
   <!-- MODAL: CONTA BANCÁRIA -->
   <div id="bankModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 id="bankModalTitle" class="font-bold text-white text-base">Nova Conta Bancária</h3>
-        <button onclick="closeBankModal()" class="text-slate-400 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <div class="glass-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+        <h3 id="bankModalTitle" class="font-bold text-slate-900 dark:text-white text-base">Nova Conta Bancária</h3>
+        <button type="button" onclick="closeBankModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <form id="bankForm" onsubmit="saveBank(event)" class="space-y-4">
         <input type="hidden" id="bankId" />
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Nome do Banco / Conta</label>
-          <input type="text" id="bankName" required placeholder="Ex: Nubank, Banco do Brasil, XP" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Nome do Banco / Conta</label>
+          <input type="text" id="bankName" required placeholder="Ex: Nubank, Poupança Caixa, XP" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Saldo Atual (R$)</label>
-          <input type="number" step="0.01" id="bankBalance" required placeholder="0,00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Saldo Atual (R$)</label>
+          <input type="number" step="0.01" id="bankBalance" required placeholder="0,00" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
         </div>
-        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
-          <button type="button" onclick="closeBankModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancelar</button>
-          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-500 hover:bg-emerald-400 transition">Salvar Conta</button>
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-800">
+          <button type="button" onclick="closeBankModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white dark:text-slate-950 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 transition">Salvar Conta</button>
         </div>
       </form>
     </div>
@@ -790,26 +884,26 @@
 
   <!-- MODAL: TRANSFERÊNCIA ENTRE CONTAS -->
   <div id="transferModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="glass-card bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 class="font-bold text-white text-base">Transferência entre Contas</h3>
-        <button onclick="closeTransferModal()" class="text-slate-400 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <div class="glass-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+        <h3 class="font-bold text-slate-900 dark:text-white text-base">Transferência entre Contas</h3>
+        <button type="button" onclick="closeTransferModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <form onsubmit="submitTransfer(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Conta de Origem (Saída)</label>
-          <select id="transferFromBank" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"></select>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Conta de Origem (Saída)</label>
+          <select id="transferFromBank" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"></select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Conta de Destino (Entrada)</label>
-          <select id="transferToBank" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"></select>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Conta de Destino (Entrada)</label>
+          <select id="transferToBank" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"></select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Valor da Transferência (R$)</label>
-          <input type="number" step="0.01" id="transferAmount" required placeholder="500,00" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Valor da Transferência (R$)</label>
+          <input type="number" step="0.01" min="0.01" id="transferAmount" required placeholder="500,00" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
         </div>
-        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-800">
-          <button type="button" onclick="closeTransferModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition">Cancelar</button>
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-800">
+          <button type="button" onclick="closeTransferModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 transition">Cancelar</button>
           <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition">Realizar Transferência</button>
         </div>
       </form>
@@ -818,72 +912,137 @@
 
   <!-- JAVASCRIPT COMPLETO INTEGRADO -->
   <script>
-    const categoriesList = ['Salário', 'Freelance', 'Moradia', 'Alimentação', 'Lazer', 'Educação', 'Saúde', 'Transporte', 'Outros'];
+    const categoriesList = ['Salário', 'Freelance', 'Moradia', 'Alimentação', 'Lazer', 'Educação', 'Saúde', 'Transporte', 'Poupança/Investimento', 'Outros'];
+
+    const getDefaultMonthStr = () => {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    };
+
+    const currentYM = getDefaultMonthStr();
 
     const initialTransactions = [
-      { id: '1', description: 'Salário Desenvolvedor Mobile', amount: 8500, type: 'income', category: 'Salário', date: '2026-11-01' },
-      { id: '2', description: 'Projeto Freelance Flutter', amount: 2200, type: 'income', category: 'Freelance', date: '2026-11-05' },
-      { id: '3', description: 'Supermercado Mensal', amount: 1150, type: 'expense', category: 'Alimentação', date: '2026-11-02' },
-      { id: '4', description: 'Aluguel & Condomínio', amount: 2400, type: 'expense', category: 'Moradia', date: '2026-11-03' },
-      { id: '5', description: 'Assinatura Anual Udemy', amount: 450, type: 'expense', category: 'Educação', date: '2026-11-04' },
-      { id: '6', description: 'Mensalidade Academia', amount: 120, type: 'expense', category: 'Saúde', date: '2026-11-06' },
-      { id: '7', description: 'Jantar Fim de Semana', amount: 280, type: 'expense', category: 'Lazer', date: '2026-11-08' },
+      { id: '1', description: 'Salário Desenvolvedor Mobile', amount: 8500, type: 'income', category: 'Salário', date: `${currentYM}-01`, targetType: 'bank', targetId: '1', targetName: 'Nubank (Conta Principal)' },
+      { id: '2', description: 'Supermercado Mensal', amount: 420, type: 'expense', category: 'Alimentação', date: `${currentYM}-03`, targetType: 'card', targetId: '1', targetName: 'Cartão Nubank' },
+      { id: '3', description: 'Aluguel & Condomínio', amount: 2400, type: 'expense', category: 'Moradia', date: `${currentYM}-05`, targetType: 'bank', targetId: '1', targetName: 'Nubank (Conta Principal)' },
+      { id: '4', description: 'Assinatura Udemy', amount: 110, type: 'expense', category: 'Educação', date: `${currentYM}-06`, targetType: 'card', targetId: '1', targetName: 'Cartão Nubank' },
     ];
 
     const initialBudgets = [
       { category: 'Moradia', limit: 2500 },
-      { category: 'Alimentação', limit: 1400 },
-      { category: 'Lazer', limit: 800 },
-      { category: 'Educação', limit: 600 },
-      { category: 'Saúde', limit: 400 },
-      { category: 'Transporte', limit: 500 }
-    ];
-
-    const initialGoals = [
-      { id: '1', title: 'Reserva de Emergência', target: 20000, current: 14500, category: 'Investimentos' },
-      { id: '2', title: 'Troca de Smartphone/Notebook', target: 8000, current: 4200, category: 'Tecnologia' },
-      { id: '3', title: 'Viagem de Férias', target: 5000, current: 1800, category: 'Lazer' }
-    ];
-
-    const initialCards = [
-      { id: '1', name: 'Nubank Roxinho', limit: 6000, used: 1430 },
-      { id: '2', name: 'Itaú Click', limit: 10000, used: 2150 }
+      { category: 'Alimentação', limit: 1200 },
+      { category: 'Lazer', limit: 600 },
+      { category: 'Educação', limit: 400 }
     ];
 
     const initialBanks = [
-      { id: '1', name: 'Nubank (Conta Principal)', balance: 5400 },
-      { id: '2', name: 'Itaú Uniclass', balance: 3200 },
-      { id: '3', name: 'XP Investimentos', balance: 12500 }
+      { id: '1', name: 'Nubank (Conta Principal)', balance: 6100 },
+      { id: '2', name: 'Poupança / Reserva', balance: 5000 },
+      { id: '3', name: 'Itaú Uniclass', balance: 2500 }
     ];
 
-    let transactions = JSON.parse(localStorage.getItem('fin_transactions')) || initialTransactions;
-    let budgets = JSON.parse(localStorage.getItem('fin_budgets')) || initialBudgets;
-    let goals = JSON.parse(localStorage.getItem('fin_goals')) || initialGoals;
-    let cards = JSON.parse(localStorage.getItem('fin_cards')) || initialCards;
-    let banks = JSON.parse(localStorage.getItem('fin_banks')) || initialBanks;
+    const initialCards = [
+      { id: '1', name: 'Cartão Nubank', limit: 5000, spendGoal: 600, used: 530 },
+      { id: '2', name: 'Itaú Click', limit: 8000, spendGoal: 1200, used: 350 }
+    ];
+
+    const initialGoals = [
+      { id: '1', title: 'Meta Reserva 15k (Poupança)', target: 15000, current: 5000, category: 'Poupança', linkedBankId: '2' },
+      { id: '2', title: 'Upgrade Setup Dev', target: 8000, current: 2400, category: 'Tecnologia', linkedBankId: '' }
+    ];
+
+    let transactions = JSON.parse(localStorage.getItem('fin_transactions_v2')) || initialTransactions;
+    let budgets = JSON.parse(localStorage.getItem('fin_budgets_v2')) || initialBudgets;
+    let goals = JSON.parse(localStorage.getItem('fin_goals_v2')) || initialGoals;
+    let cards = JSON.parse(localStorage.getItem('fin_cards_v2')) || initialCards;
+    let banks = JSON.parse(localStorage.getItem('fin_banks_v2')) || initialBanks;
     let activeTab = 'dashboard';
 
     function formatCurrency(value) {
       return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
     }
 
+    // SISTEMA DE NOTIFICAÇÃO TOAST
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const bgColors = type === 'error' ? 'bg-rose-600 text-white' : type === 'warning' ? 'bg-amber-500 text-slate-950' : 'bg-emerald-600 text-white';
+      toast.className = `${bgColors} px-4 py-3 rounded-xl shadow-xl text-xs font-bold flex items-center space-x-2 transition-all duration-300 transform translate-y-2 opacity-0`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // SISTEMA DE CONFIRMAÇÃO MODAL
+    let pendingConfirmCallback = null;
+    function openConfirmModal(title, message, onConfirm) {
+      document.getElementById('confirmModalTitle').innerText = title;
+      document.getElementById('confirmModalMessage').innerText = message;
+      pendingConfirmCallback = onConfirm;
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmModal').classList.add('hidden');
+      pendingConfirmCallback = null;
+    }
+
+    document.getElementById('confirmModalActionBtn').addEventListener('click', () => {
+      if (typeof pendingConfirmCallback === 'function') {
+        pendingConfirmCallback();
+      }
+      closeConfirmModal();
+    });
+
+    // ALTERNAR TEMA CLARO / ESCURO
+    function initTheme() {
+      const savedTheme = localStorage.getItem('fin_theme') || 'dark';
+      const htmlEl = document.documentElement;
+      const iconEl = document.getElementById('themeIcon');
+      if (savedTheme === 'dark') {
+        htmlEl.classList.add('dark');
+        if (iconEl) iconEl.setAttribute('data-lucide', 'sun');
+      } else {
+        htmlEl.classList.remove('dark');
+        if (iconEl) iconEl.setAttribute('data-lucide', 'moon');
+      }
+    }
+
+    function toggleTheme() {
+      const htmlEl = document.documentElement;
+      const isDark = htmlEl.classList.toggle('dark');
+      localStorage.setItem('fin_theme', isDark ? 'dark' : 'light');
+      const iconEl = document.getElementById('themeIcon');
+      if (iconEl) {
+        iconEl.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+      }
+      if (window.lucide) window.lucide.createIcons();
+    }
+
     function saveState() {
-      localStorage.setItem('fin_transactions', JSON.stringify(transactions));
-      localStorage.setItem('fin_budgets', JSON.stringify(budgets));
-      localStorage.setItem('fin_goals', JSON.stringify(goals));
-      localStorage.setItem('fin_cards', JSON.stringify(cards));
-      localStorage.setItem('fin_banks', JSON.stringify(banks));
+      localStorage.setItem('fin_transactions_v2', JSON.stringify(transactions));
+      localStorage.setItem('fin_budgets_v2', JSON.stringify(budgets));
+      localStorage.setItem('fin_goals_v2', JSON.stringify(goals));
+      localStorage.setItem('fin_cards_v2', JSON.stringify(cards));
+      localStorage.setItem('fin_banks_v2', JSON.stringify(banks));
       renderApp();
     }
 
     window.onload = function() {
-      const now = new Date();
-      const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      initTheme();
       const monthFilter = document.getElementById('monthFilter');
-      if (monthFilter) monthFilter.value = currentMonthStr;
+      if (monthFilter) monthFilter.value = currentYM;
 
       populateCategoryDropdowns();
-      renderApp();
+      switchTab('dashboard');
     };
 
     function populateCategoryDropdowns() {
@@ -901,15 +1060,16 @@
 
     function switchTab(tabName) {
       activeTab = tabName;
-      ['dashboard', 'transactions', 'budgets', 'cards', 'banks', 'goals'].forEach(t => {
+      const allTabs = ['dashboard', 'transactions', 'cards', 'banks', 'budgets', 'goals'];
+      allTabs.forEach(t => {
         const btn = document.getElementById(`tabBtn-${t}`);
         const sec = document.getElementById(`section-${t}`);
         if (!btn || !sec) return;
         if (t === tabName) {
-          btn.className = "flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-semibold rounded-lg transition text-white bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm";
+          btn.className = "px-3.5 py-2 text-xs sm:text-sm font-bold rounded-lg transition whitespace-nowrap bg-emerald-600 text-white dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-600 dark:border-emerald-500/30 shadow-sm";
           sec.classList.remove('hidden');
         } else {
-          btn.className = "flex-1 md:flex-none px-5 py-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 rounded-lg transition";
+          btn.className = "px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 rounded-lg transition whitespace-nowrap";
           sec.classList.add('hidden');
         }
       });
@@ -921,26 +1081,38 @@
       if (!monthFilterEl) return;
       const selectedMonth = monthFilterEl.value;
 
+      // Sincroniza automaticamente metas vinculadas a bancos
+      goals.forEach(g => {
+        if (g.linkedBankId) {
+          const linkedBank = banks.find(b => b.id === g.linkedBankId);
+          if (linkedBank) {
+            g.current = linkedBank.balance;
+          }
+        }
+      });
+
       const monthTransactions = transactions.filter(t => t.date.startsWith(selectedMonth));
 
-      const monthIncome = monthTransactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
+      const monthIncome = monthTransactions.filter(t => t.type === 'income' || t.type === 'bank_deposit').reduce((acc, t) => acc + t.amount, 0);
       const monthExpense = monthTransactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
       const monthBalance = monthIncome - monthExpense;
 
-      // Saldo Geral total acumulado nas contas bancárias
       const totalBalance = banks.reduce((acc, b) => acc + b.balance, 0);
+      const totalInvoices = cards.reduce((acc, c) => acc + c.used, 0);
 
       document.getElementById('card-totalBalance').innerText = formatCurrency(totalBalance);
       document.getElementById('card-monthIncome').innerText = formatCurrency(monthIncome);
       document.getElementById('card-monthExpense').innerText = formatCurrency(monthExpense);
+      document.getElementById('card-totalInvoices').innerText = formatCurrency(totalInvoices);
       
-      const mbEl = document.getElementById('card-monthBalance');
-      mbEl.innerText = formatCurrency(monthBalance);
-      mbEl.className = `text-2xl sm:text-3xl font-extrabold ${monthBalance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+      const mbLabelEl = document.getElementById('card-monthBalanceLabel');
+      mbLabelEl.innerText = `Balanço mensal: ${formatCurrency(monthBalance)}`;
+      mbLabelEl.className = `text-[11px] font-semibold mt-2 block ${monthBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`;
       
       const commitRate = monthIncome > 0 ? ((monthExpense / monthIncome) * 100).toFixed(0) : 0;
-      document.getElementById('card-commitmentRate').innerText = `${commitRate}% da renda gasta no mês`;
+      document.getElementById('card-commitmentRate').innerText = `${commitRate}% das entradas gastas no mês`;
 
+      renderDashboardCards();
       renderDashboardBudgets(monthTransactions);
       renderDashboardGoals();
       renderSmartAlerts(monthTransactions);
@@ -957,19 +1129,28 @@
       const alertContainer = document.getElementById('smartAlertsContainer');
       const alerts = [];
 
+      // Alertas de Orçamentos
       budgets.forEach(b => {
         const spent = monthTransactions.filter(t => t.type === 'expense' && t.category === b.category)
                                         .reduce((acc, t) => acc + t.amount, 0);
         if (spent > b.limit) {
-          alerts.push(`<div class="flex items-center text-xs font-semibold text-rose-400"><i data-lucide="alert-triangle" class="w-4 h-4 mr-2"></i> Orçamento de <strong>${b.category}</strong> estourado em ${formatCurrency(spent - b.limit)}!</div>`);
+          alerts.push(`<div class="flex items-center text-xs font-semibold text-rose-600 dark:text-rose-400"><i data-lucide="alert-triangle" class="w-4 h-4 mr-2 shrink-0"></i> Orçamento de <strong>&nbsp;${b.category}&nbsp;</strong> estourado em ${formatCurrency(spent - b.limit)}!</div>`);
         } else if (spent >= b.limit * 0.85) {
-          alerts.push(`<div class="flex items-center text-xs font-semibold text-amber-400"><i data-lucide="alert-circle" class="w-4 h-4 mr-2"></i> Orçamento de <strong>${b.category}</strong> atingiu ${(spent/b.limit*100).toFixed(0)}% do limite.</div>`);
+          alerts.push(`<div class="flex items-center text-xs font-semibold text-amber-600 dark:text-amber-400"><i data-lucide="alert-circle" class="w-4 h-4 mr-2 shrink-0"></i> Orçamento de <strong>&nbsp;${b.category}&nbsp;</strong> atingiu ${(spent/b.limit*100).toFixed(0)}% do limite.</div>`);
         }
       });
 
+      // Alertas de Cartões (Teto de Gasto Mensal e Limite Total)
       cards.forEach(c => {
-        if (c.used >= c.limit * 0.9) {
-          alerts.push(`<div class="flex items-center text-xs font-semibold text-rose-400"><i data-lucide="credit-card" class="w-4 h-4 mr-2"></i> Fatura do cartão <strong>${c.name}</strong> está próxima do limite máximo (${((c.used/c.limit)*100).toFixed(0)}% utilizado).</div>`);
+        if (c.spendGoal && c.spendGoal > 0) {
+          if (c.used > c.spendGoal) {
+            alerts.push(`<div class="flex items-center text-xs font-semibold text-rose-600 dark:text-rose-400"><i data-lucide="credit-card" class="w-4 h-4 mr-2 shrink-0"></i> Você ultrapassou sua meta de gasto mensal no <strong>&nbsp;${c.name}&nbsp;</strong> (${formatCurrency(c.used)} de ${formatCurrency(c.spendGoal)})!</div>`);
+          } else if (c.used >= c.spendGoal * 0.8) {
+            alerts.push(`<div class="flex items-center text-xs font-semibold text-amber-600 dark:text-amber-400"><i data-lucide="credit-card" class="w-4 h-4 mr-2 shrink-0"></i> Atenção: Gastos no <strong>&nbsp;${c.name}&nbsp;</strong> já atingiram ${((c.used/c.spendGoal)*100).toFixed(0)}% da sua meta mensal (${formatCurrency(c.spendGoal)}).</div>`);
+          }
+        }
+        if (c.used >= c.limit * 0.85) {
+          alerts.push(`<div class="flex items-center text-xs font-semibold text-rose-600 dark:text-rose-400"><i data-lucide="alert-octagon" class="w-4 h-4 mr-2 shrink-0"></i> Limite total do <strong>&nbsp;${c.name}&nbsp;</strong> está quase esgotado (${((c.used/c.limit)*100).toFixed(0)}%)!</div>`);
         }
       });
 
@@ -981,7 +1162,51 @@
       }
     }
 
-    // RENDERIZAÇÃO DE CARTÕES DE CRÉDITO
+    // DASHBOARD: RESUMO DOS CARTÕES
+    function renderDashboardCards() {
+      const container = document.getElementById('dashboardCardsList');
+      if (cards.length === 0) {
+        container.innerHTML = `<p class="col-span-full text-xs text-slate-500 text-center py-4">Nenhum cartão cadastrado.</p>`;
+        return;
+      }
+
+      container.innerHTML = cards.map(c => {
+        const refLimit = (c.spendGoal && c.spendGoal > 0) ? c.spendGoal : c.limit;
+        const labelType = (c.spendGoal && c.spendGoal > 0) ? 'Meta de gasto mensal' : 'Limite total';
+        const percent = Math.min(100, Math.round((c.used / refLimit) * 100));
+        const isDanger = c.used > refLimit;
+        const isWarning = percent >= 80 && !isDanger;
+        const barColor = isDanger ? 'bg-rose-500' : isWarning ? 'bg-amber-500' : 'bg-emerald-500';
+        const badgeText = isDanger ? 'Limite excedido!' : isWarning ? 'Perto do limite!' : 'Controlado';
+        const badgeClass = isDanger 
+          ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' 
+          : isWarning 
+            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' 
+            : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
+
+        return `
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 space-y-2.5">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-sm text-slate-900 dark:text-white">${c.name}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${badgeClass}">${badgeText}</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-500 dark:text-slate-400">Fatura: <strong class="text-slate-900 dark:text-white">${formatCurrency(c.used)}</strong></span>
+              <span class="text-slate-500 dark:text-slate-400">${labelType}: <strong>${formatCurrency(refLimit)}</strong></span>
+            </div>
+            <div class="w-full h-2 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden">
+              <div class="h-full ${barColor} transition-all duration-300" style="width: ${percent}%"></div>
+            </div>
+            <div class="flex justify-between text-[11px] text-slate-500">
+              <span>${percent}% da meta de gasto</span>
+              <span>Limite banco: ${formatCurrency(c.limit)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // RENDERIZAÇÃO DE CARTÕES DE CRÉDITO (ABA CARTÕES)
     function renderCards() {
       const grid = document.getElementById('cardsGrid');
       if (cards.length === 0) {
@@ -990,48 +1215,77 @@
       }
 
       grid.innerHTML = cards.map(c => {
-        const percent = Math.min(100, Math.round((c.used / c.limit) * 100));
+        const limitPercent = Math.min(100, Math.round((c.used / c.limit) * 100));
         const available = Math.max(0, c.limit - c.used);
-        const color = percent >= 90 ? 'bg-rose-500' : percent >= 75 ? 'bg-amber-500' : 'bg-emerald-500';
+        
+        const hasGoal = c.spendGoal && c.spendGoal > 0;
+        const goalPercent = hasGoal ? Math.min(100, Math.round((c.used / c.spendGoal) * 100)) : 0;
+        const goalColor = hasGoal && c.used > c.spendGoal ? 'bg-rose-500' : goalPercent >= 80 ? 'bg-amber-500' : 'bg-indigo-500';
 
         return `
           <div class="glass-card p-5 rounded-2xl space-y-4 flex flex-col justify-between">
             <div>
               <div class="flex justify-between items-start mb-2">
                 <div class="flex items-center space-x-2">
-                  <div class="p-2 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
+                  <div class="p-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-500/20">
                     <i data-lucide="credit-card" class="w-5 h-5"></i>
                   </div>
-                  <h3 class="font-bold text-white text-base">${c.name}</h3>
+                  <h3 class="font-bold text-slate-900 dark:text-white text-base">${c.name}</h3>
                 </div>
                 <div class="flex space-x-1">
-                  <button onclick="openCardModal('${c.id}')" class="p-1 text-slate-400 hover:text-emerald-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                  <button onclick="deleteCard('${c.id}')" class="p-1 text-slate-400 hover:text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                  <button type="button" onclick="openCardModal('${c.id}')" class="p-1 text-slate-400 hover:text-emerald-500" title="Editar"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                  <button type="button" onclick="deleteCard('${c.id}')" class="p-1 text-slate-400 hover:text-rose-500" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>
               </div>
 
               <div class="flex justify-between items-baseline mt-4 mb-1">
-                <span class="text-xs text-slate-400">Fatura Atual:</span>
-                <span class="text-xl font-extrabold text-rose-400">${formatCurrency(c.used)}</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400">Fatura Atual:</span>
+                <span class="text-xl font-extrabold text-rose-600 dark:text-rose-400">${formatCurrency(c.used)}</span>
               </div>
 
-              <div class="w-full h-3 bg-slate-950 rounded-full overflow-hidden mb-2">
-                <div class="h-full ${color} transition-all duration-300" style="width: ${percent}%"></div>
+              <!-- Barra de Limite Total do Cartão -->
+              <div class="space-y-1 mt-3">
+                <div class="flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                  <span>Limite Total: ${formatCurrency(c.limit)}</span>
+                  <span class="text-emerald-600 dark:text-emerald-400 font-semibold">Livre: ${formatCurrency(available)}</span>
+                </div>
+                <div class="w-full h-2.5 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden">
+                  <div class="h-full bg-emerald-500 transition-all duration-300" style="width: ${limitPercent}%"></div>
+                </div>
               </div>
 
-              <div class="flex justify-between text-[11px] text-slate-400">
-                <span>Limite: ${formatCurrency(c.limit)}</span>
-                <span class="text-emerald-400 font-semibold">Disponível: ${formatCurrency(available)}</span>
-              </div>
+              <!-- Barra de Meta de Gasto Mensal -->
+              ${hasGoal ? `
+                <div class="space-y-1 mt-3 pt-3 border-t border-slate-200 dark:border-slate-800/70">
+                  <div class="flex justify-between text-[11px]">
+                    <span class="text-slate-600 dark:text-slate-300 font-semibold">Teto de Gasto Definido: ${formatCurrency(c.spendGoal)}</span>
+                    <span class="${c.used > c.spendGoal ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-indigo-600 dark:text-indigo-400 font-semibold'}">${goalPercent}%</span>
+                  </div>
+                  <div class="w-full h-2.5 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden">
+                    <div class="h-full ${goalColor} transition-all duration-300" style="width: ${goalPercent}%"></div>
+                  </div>
+                </div>
+              ` : ''}
             </div>
 
-            <button 
-              onclick="openPayInvoiceModal('${c.id}')"
-              class="w-full mt-2 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/10"
-            >
-              <i data-lucide="check-circle" class="w-4 h-4"></i>
-              <span>Pagar Fatura (Zerar)</span>
-            </button>
+            <div class="flex gap-2 mt-2">
+              <button 
+                type="button"
+                onclick="openTransactionModalWithCard('${c.id}')"
+                class="flex-1 py-2.5 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1"
+              >
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>Lançar Gasto</span>
+              </button>
+              <button 
+                type="button"
+                onclick="openPayInvoiceModal('${c.id}')"
+                class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1 shadow-lg shadow-emerald-500/10"
+              >
+                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                <span>Pagar Fatura</span>
+              </button>
+            </div>
           </div>
         `;
       }).join('');
@@ -1050,22 +1304,30 @@
           <div>
             <div class="flex justify-between items-start mb-2">
               <div class="flex items-center space-x-2">
-                <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+                <div class="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20">
                   <i data-lucide="building-2" class="w-5 h-5"></i>
                 </div>
-                <h3 class="font-bold text-white text-base">${b.name}</h3>
+                <h3 class="font-bold text-slate-900 dark:text-white text-base">${b.name}</h3>
               </div>
               <div class="flex space-x-1">
-                <button onclick="openBankModal('${b.id}')" class="p-1 text-slate-400 hover:text-emerald-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                <button onclick="deleteBank('${b.id}')" class="p-1 text-slate-400 hover:text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                <button type="button" onclick="openBankModal('${b.id}')" class="p-1 text-slate-400 hover:text-emerald-500"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                <button type="button" onclick="deleteBank('${b.id}')" class="p-1 text-slate-400 hover:text-rose-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
               </div>
             </div>
 
             <div class="mt-4">
-              <span class="text-xs text-slate-400">Saldo Disponível</span>
-              <div class="text-2xl font-extrabold text-white mt-1">${formatCurrency(b.balance)}</div>
+              <span class="text-xs text-slate-500 dark:text-slate-400">Saldo Disponível</span>
+              <div class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">${formatCurrency(b.balance)}</div>
             </div>
           </div>
+          <button 
+            type="button"
+            onclick="openDirectBankDeposit('${b.id}')"
+            class="w-full py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5"
+          >
+            <i data-lucide="arrow-down-circle" class="w-3.5 h-3.5"></i>
+            <span>Depositar / Adicionar Saldo</span>
+          </button>
         </div>
       `).join('');
     }
@@ -1080,6 +1342,7 @@
         document.getElementById('cardId').value = item.id;
         document.getElementById('cardName').value = item.name;
         document.getElementById('cardLimit').value = item.limit;
+        document.getElementById('cardSpendGoal').value = item.spendGoal || '';
         document.getElementById('cardUsed').value = item.used;
         title.innerText = "Editar Cartão";
       } else {
@@ -1097,26 +1360,35 @@
       const id = document.getElementById('cardId').value;
       const name = document.getElementById('cardName').value;
       const limit = parseFloat(document.getElementById('cardLimit').value);
+      const spendGoal = parseFloat(document.getElementById('cardSpendGoal').value || 0);
       const used = parseFloat(document.getElementById('cardUsed').value || 0);
 
       if (id) {
-        cards = cards.map(c => c.id === id ? { id, name, limit, used } : c);
+        cards = cards.map(c => c.id === id ? { id, name, limit, spendGoal, used } : c);
       } else {
-        cards.push({ id: Date.now().toString(), name, limit, used });
+        cards.push({ id: Date.now().toString(), name, limit, spendGoal, used });
       }
       closeCardModal();
       saveState();
+      showToast("Cartão salvo com sucesso!");
     }
 
     function deleteCard(id) {
-      cards = cards.filter(c => c.id !== id);
-      saveState();
+      openConfirmModal("Excluir Cartão", "Tem certeza que deseja excluir este cartão de crédito?", () => {
+        cards = cards.filter(c => c.id !== id);
+        saveState();
+        showToast("Cartão removido.");
+      });
     }
 
     function openPayInvoiceModal(id) {
       const card = cards.find(c => c.id === id);
       if (!card || card.used <= 0) {
-        alert("Esta fatura já está zerada!");
+        showToast("Esta fatura já está zerada!", "warning");
+        return;
+      }
+      if (banks.length === 0) {
+        showToast("Cadastre uma conta bancária primeiro para debitar o pagamento.", "error");
         return;
       }
       document.getElementById('payCardId').value = id;
@@ -1139,11 +1411,10 @@
 
       if (!card || !bank) return;
       if (bank.balance < card.used) {
-        alert("Saldo insuficiente na conta bancária selecionada para pagar esta fatura!");
+        showToast("Saldo insuficiente na conta selecionada para pagar esta fatura!", "error");
         return;
       }
 
-      // Automação: Desconta do banco, zera a fatura e registra o lançamento
       bank.balance -= card.used;
       const amountPaid = card.used;
       card.used = 0;
@@ -1154,12 +1425,15 @@
         amount: amountPaid,
         type: 'expense',
         category: 'Outros',
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        targetType: 'bank',
+        targetId: bank.id,
+        targetName: bank.name
       });
 
       closePayInvoiceModal();
       saveState();
-      alert(`Fatura do ${card.name} paga com sucesso! O valor de ${formatCurrency(amountPaid)} foi debitado do ${bank.name}.`);
+      showToast(`Fatura do ${card.name} paga e zerada com sucesso!`);
     }
 
     // CRUD & BANCOS
@@ -1196,17 +1470,21 @@
       }
       closeBankModal();
       saveState();
+      showToast("Conta bancária salva!");
     }
 
     function deleteBank(id) {
-      banks = banks.filter(b => b.id !== id);
-      saveState();
+      openConfirmModal("Excluir Conta", "Deseja realmente excluir esta conta bancária?", () => {
+        banks = banks.filter(b => b.id !== id);
+        saveState();
+        showToast("Conta removida.");
+      });
     }
 
-    // AUTOMIA DE TRANSFERÊNCIA ENTRE CONTAS
+    // TRANSFERÊNCIA ENTRE CONTAS
     function openTransferModal() {
       if (banks.length < 2) {
-        alert("Cadastre pelo menos 2 contas bancárias para realizar transferências entre elas!");
+        showToast("Cadastre pelo menos 2 contas bancárias para transferir entre elas!", "warning");
         return;
       }
       const fromSelect = document.getElementById('transferFromBank');
@@ -1214,6 +1492,7 @@
 
       fromSelect.innerHTML = banks.map(b => `<option value="${b.id}">${b.name} (${formatCurrency(b.balance)})</option>`).join('');
       toSelect.innerHTML = banks.map(b => `<option value="${b.id}">${b.name} (${formatCurrency(b.balance)})</option>`).join('');
+      if (banks.length > 1) toSelect.selectedIndex = 1;
       
       document.getElementById('transferModal').classList.remove('hidden');
     }
@@ -1227,7 +1506,7 @@
       const amount = parseFloat(document.getElementById('transferAmount').value);
 
       if (fromId === toId) {
-        alert("Selecione contas diferentes para transferência!");
+        showToast("Selecione contas diferentes para transferência!", "error");
         return;
       }
 
@@ -1235,7 +1514,7 @@
       const toBank = banks.find(b => b.id === toId);
 
       if (fromBank.balance < amount) {
-        alert("Saldo insuficiente na conta de origem!");
+        showToast("Saldo insuficiente na conta de origem!", "error");
         return;
       }
 
@@ -1244,7 +1523,7 @@
 
       closeTransferModal();
       saveState();
-      alert(`Transferência de ${formatCurrency(amount)} realizada com sucesso de ${fromBank.name} para ${toBank.name}!`);
+      showToast(`Transferência de ${formatCurrency(amount)} concluída!`);
     }
 
     function renderDashboardBudgets(monthTransactions) {
@@ -1262,12 +1541,12 @@
         const color = isOver ? 'bg-rose-500' : percent >= 80 ? 'bg-amber-500' : 'bg-emerald-500';
 
         return `
-          <div class="space-y-1 border-b border-slate-800/50 pb-2.5 last:border-0">
+          <div class="space-y-1 border-b border-slate-200 dark:border-slate-800/50 pb-2.5 last:border-0">
             <div class="flex justify-between text-xs">
-              <span class="font-medium text-slate-300">${b.category}</span>
-              <span class="font-bold text-slate-200">${formatCurrency(spent)} / <span class="text-slate-500">${formatCurrency(b.limit)}</span></span>
+              <span class="font-medium text-slate-700 dark:text-slate-300">${b.category}</span>
+              <span class="font-bold text-slate-900 dark:text-slate-200">${formatCurrency(spent)} / <span class="text-slate-500">${formatCurrency(b.limit)}</span></span>
             </div>
-            <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
+            <div class="w-full h-2 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden">
               <div class="h-full ${color} transition-all duration-300" style="width: ${percent}%"></div>
             </div>
           </div>
@@ -1285,12 +1564,12 @@
       container.innerHTML = goals.map(g => {
         const percent = Math.min(100, Math.round((g.current / g.target) * 100));
         return `
-          <div class="space-y-1 border-b border-slate-800/50 pb-2.5 last:border-0">
+          <div class="space-y-1 border-b border-slate-200 dark:border-slate-800/50 pb-2.5 last:border-0">
             <div class="flex justify-between text-xs">
-              <span class="font-medium text-slate-300">${g.title}</span>
-              <span class="font-bold text-emerald-400">${percent}%</span>
+              <span class="font-medium text-slate-700 dark:text-slate-300">${g.title}</span>
+              <span class="font-bold text-emerald-600 dark:text-emerald-400">${formatCurrency(g.current)} / ${formatCurrency(g.target)} (${percent}%)</span>
             </div>
-            <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
+            <div class="w-full h-2 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden">
               <div class="h-full bg-emerald-500 transition-all duration-300" style="width: ${percent}%"></div>
             </div>
           </div>
@@ -1309,25 +1588,38 @@
       }
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-xs text-slate-500">Nenhum lançamento encontrado para este período.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-xs text-slate-500">Nenhum lançamento encontrado para este período.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = filtered.map(t => `
-        <tr class="hover:bg-slate-900/60 transition">
-          <td class="px-4 py-3.5 text-xs text-slate-400 whitespace-nowrap">${t.date}</td>
-          <td class="px-4 py-3.5 font-semibold text-slate-100">${t.description}</td>
-          <td class="px-4 py-3.5"><span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-800 text-slate-300 border border-slate-700/50">${t.category}</span></td>
-          <td class="px-4 py-3.5"><span class="px-2.5 py-1 rounded-lg text-[11px] font-bold ${t.type === 'income' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">${t.type === 'income' ? 'Entrada' : 'Saída'}</span></td>
-          <td class="px-4 py-3.5 text-right font-extrabold whitespace-nowrap ${t.type === 'income' ? 'text-emerald-400' : 'text-slate-100'}">${t.type === 'income' ? '+' : '-'} ${formatCurrency(t.amount)}</td>
-          <td class="px-4 py-3.5 text-center">
-            <div class="flex items-center justify-center space-x-2">
-              <button onclick="openTransactionModal('${t.id}')" class="p-1 text-slate-400 hover:text-emerald-400 transition" title="Editar"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-              <button onclick="deleteTransaction('${t.id}')" class="p-1 text-slate-400 hover:text-rose-400 transition" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-            </div>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = filtered.map(t => {
+        const isPositive = t.type === 'income' || t.type === 'bank_deposit';
+        const typeLabel = t.type === 'income' ? 'Entrada' : t.type === 'bank_deposit' ? 'Depósito Banco' : 'Saída';
+        const badgeStyle = isPositive 
+          ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20' 
+          : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
+
+        const targetBadge = t.targetType === 'card' 
+          ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20"><i data-lucide="credit-card" class="w-3 h-3"></i> ${t.targetName || 'Cartão'}</span>`
+          : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300"><i data-lucide="building-2" class="w-3 h-3"></i> ${t.targetName || 'Conta'}</span>`;
+
+        return `
+          <tr class="hover:bg-slate-100/80 dark:hover:bg-slate-900/60 transition">
+            <td class="px-4 py-3.5 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">${t.date}</td>
+            <td class="px-4 py-3.5 font-semibold text-slate-900 dark:text-slate-100">${t.description}</td>
+            <td class="px-4 py-3.5 whitespace-nowrap">${targetBadge}</td>
+            <td class="px-4 py-3.5"><span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${t.category}</span></td>
+            <td class="px-4 py-3.5"><span class="px-2.5 py-1 rounded-lg text-[11px] font-bold border ${badgeStyle}">${typeLabel}</span></td>
+            <td class="px-4 py-3.5 text-right font-extrabold whitespace-nowrap ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-slate-100'}">${isPositive ? '+' : '-'} ${formatCurrency(t.amount)}</td>
+            <td class="px-4 py-3.5 text-center">
+              <div class="flex items-center justify-center space-x-2">
+                <button type="button" onclick="openTransactionModal('${t.id}')" class="p-1 text-slate-400 hover:text-emerald-500 transition" title="Editar"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                <button type="button" onclick="deleteTransaction('${t.id}')" class="p-1 text-slate-400 hover:text-rose-500 transition" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function renderBudgets(monthTransactions) {
@@ -1348,20 +1640,20 @@
           <div class="glass-card p-5 rounded-2xl space-y-4 flex flex-col justify-between">
             <div>
               <div class="flex justify-between items-start mb-2">
-                <h3 class="font-bold text-white text-base">${b.category}</h3>
+                <h3 class="font-bold text-slate-900 dark:text-white text-base">${b.category}</h3>
                 <div class="flex space-x-1">
-                  <button onclick="openBudgetModal('${b.category}')" class="p-1 text-slate-400 hover:text-emerald-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                  <button onclick="deleteBudget('${b.category}')" class="p-1 text-slate-400 hover:text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                  <button type="button" onclick="openBudgetModal('${b.category}')" class="p-1 text-slate-400 hover:text-emerald-500"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                  <button type="button" onclick="deleteBudget('${b.category}')" class="p-1 text-slate-400 hover:text-rose-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>
               </div>
               <div class="flex justify-between items-baseline mt-4 mb-2">
-                <span class="text-xl font-extrabold text-white">${formatCurrency(spent)}</span>
-                <span class="text-xs text-slate-400">Limite: ${formatCurrency(b.limit)}</span>
+                <span class="text-xl font-extrabold text-slate-900 dark:text-white">${formatCurrency(spent)}</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400">Limite: ${formatCurrency(b.limit)}</span>
               </div>
-              <div class="w-full h-3 bg-slate-950 rounded-full overflow-hidden mb-2">
+              <div class="w-full h-3 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden mb-2">
                 <div class="h-full ${color} transition-all duration-300" style="width: ${percent}%"></div>
               </div>
-              <span class="text-[11px] ${isOver ? 'text-rose-400 font-bold' : 'text-slate-400'}">${isOver ? `Excedido em ${formatCurrency(spent - b.limit)}` : `${percent}% utilizado`}</span>
+              <span class="text-[11px] ${isOver ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-slate-500 dark:text-slate-400'}">${isOver ? `Excedido em ${formatCurrency(spent - b.limit)}` : `${percent}% utilizado`}</span>
             </div>
           </div>
         `;
@@ -1377,41 +1669,76 @@
 
       grid.innerHTML = goals.map(g => {
         const percent = Math.min(100, Math.round((g.current / g.target) * 100));
+        const linkedBank = g.linkedBankId ? banks.find(b => b.id === g.linkedBankId) : null;
+
         return `
           <div class="glass-card p-5 rounded-2xl space-y-4 flex flex-col justify-between">
             <div>
               <div class="flex justify-between items-start mb-2">
-                <h3 class="font-bold text-white text-base">${g.title}</h3>
+                <h3 class="font-bold text-slate-900 dark:text-white text-base">${g.title}</h3>
                 <div class="flex space-x-1">
-                  <button onclick="openGoalModal('${g.id}')" class="p-1 text-slate-400 hover:text-emerald-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                  <button onclick="deleteGoal('${g.id}')" class="p-1 text-slate-400 hover:text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                  <button type="button" onclick="openGoalModal('${g.id}')" class="p-1 text-slate-400 hover:text-emerald-500"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                  <button type="button" onclick="deleteGoal('${g.id}')" class="p-1 text-slate-400 hover:text-rose-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>
               </div>
-              <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-slate-800 text-slate-300 rounded-md border border-slate-700/50">${g.category || 'Geral'}</span>
+              <div class="flex flex-wrap gap-1.5 items-center">
+                <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md">${g.category || 'Geral'}</span>
+                ${linkedBank ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 rounded-md flex items-center gap-1"><i data-lucide="link" class="w-2.5 h-2.5"></i> ${linkedBank.name}</span>` : ''}
+              </div>
               
               <div class="flex justify-between items-baseline mt-4 mb-2">
-                <span class="text-xl font-extrabold text-white">${formatCurrency(g.current)}</span>
-                <span class="text-xs text-slate-400">Alvo: ${formatCurrency(g.target)}</span>
+                <span class="text-xl font-extrabold text-slate-900 dark:text-white">${formatCurrency(g.current)}</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400">Alvo: ${formatCurrency(g.target)}</span>
               </div>
-              <div class="w-full h-3 bg-slate-950 rounded-full overflow-hidden mb-2">
+              <div class="w-full h-3 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden mb-2">
                 <div class="h-full bg-emerald-500 transition-all duration-300" style="width: ${percent}%"></div>
               </div>
-              <div class="flex justify-between text-[11px] text-slate-400">
+              <div class="flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
                 <span>${percent}% concluído</span>
                 <span>Faltam ${formatCurrency(Math.max(0, g.target - g.current))}</span>
               </div>
             </div>
 
             <button 
+              type="button"
               onclick="openContributionModal('${g.id}')"
-              class="w-full mt-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1"
+              class="w-full mt-4 py-2.5 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5"
             >
-              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-              <span>Realizar Aporte</span>
+              <i data-lucide="arrow-up-down" class="w-3.5 h-3.5"></i>
+              <span>Adicionar / Retirar Valor</span>
             </button>
           </div>
         `;
       }).join('');
+    }
+
+    // POPULA OPÇÕES DO MODAL DE LANÇAMENTOS (CARTÕES E BANCOS)
+    function handleTransTypeChange() {
+      const type = document.getElementById('transType').value;
+      const targetSelect = document.getElementById('transTargetSelect');
+      const targetHint = document.getElementById('transTargetHint');
+
+      if (type === 'expense') {
+        let optionsHtml = '';
+        if (cards.length > 0) {
+          optionsHtml += `<optgroup label="Cartões de Crédito (Soma na Fatura)">` + 
+            cards.map(c => `<option value="card:${c.id}">💳 ${c.name} (Fatura atual: ${formatCurrency(c.used)})</option>`).join('') + 
+            `</optgroup>`;
+        }
+        if (banks.length > 0) {
+          optionsHtml += `<optgroup label="Contas Bancárias (Desconta do Saldo)">` + 
+            banks.map(b => `<option value="bank:${b.id}">🏦 ${b.name} (Saldo: ${formatCurrency(b.balance)})</option>`).join('') + 
+            `</optgroup>`;
+        }
+        targetSelect.innerHTML = optionsHtml || `<option value="">Nenhum banco ou cartão cadastrado</option>`;
+        targetHint.innerText = "Se selecionar um Cartão, o valor vai direto para a fatura. Se selecionar um Banco, desconta do saldo.";
+      } else {
+        // income ou bank_deposit
+        targetSelect.innerHTML = banks.length > 0 
+          ? banks.map(b => `<option value="bank:${b.id}">🏦 ${b.name} (Saldo atual: ${formatCurrency(b.balance)})</option>`).join('')
+          : `<option value="">Nenhuma conta bancária cadastrada</option>`;
+        targetHint.innerText = "O valor será creditado diretamente no saldo do banco selecionado.";
+      }
     }
 
     function openTransactionModal(id = null) {
@@ -1425,20 +1752,68 @@
         document.getElementById('transDesc').value = item.description;
         document.getElementById('transAmount').value = item.amount;
         document.getElementById('transType').value = item.type;
+        handleTransTypeChange();
+        if (item.targetType && item.targetId) {
+          document.getElementById('transTargetSelect').value = `${item.targetType}:${item.targetId}`;
+        }
         document.getElementById('transCategory').value = item.category;
         document.getElementById('transDate').value = item.date;
         title.innerText = "Editar Lançamento";
       } else {
         document.getElementById('transForm').reset();
         document.getElementById('transId').value = "";
+        document.getElementById('transType').value = "expense";
         document.getElementById('transDate').value = new Date().toISOString().split('T')[0];
+        handleTransTypeChange();
         title.innerText = "Novo Lançamento";
       }
       modal.classList.remove('hidden');
     }
 
+    function openTransactionModalWithCard(cardId) {
+      openTransactionModal();
+      document.getElementById('transType').value = 'expense';
+      handleTransTypeChange();
+      document.getElementById('transTargetSelect').value = `card:${cardId}`;
+    }
+
+    function openDirectBankDeposit(bankId) {
+      openTransactionModal();
+      document.getElementById('transType').value = 'bank_deposit';
+      handleTransTypeChange();
+      document.getElementById('transTargetSelect').value = `bank:${bankId}`;
+    }
+
     function closeTransactionModal() {
       document.getElementById('transModal').classList.add('hidden');
+    }
+
+    function revertTransactionEffect(t) {
+      if (!t || !t.targetType || !t.targetId) return;
+      if (t.targetType === 'card' && t.type === 'expense') {
+        const card = cards.find(c => c.id === t.targetId);
+        if (card) card.used = Math.max(0, card.used - t.amount);
+      } else if (t.targetType === 'bank') {
+        const bank = banks.find(b => b.id === t.targetId);
+        if (bank) {
+          if (t.type === 'expense') bank.balance += t.amount;
+          else bank.balance -= t.amount;
+        }
+      }
+    }
+
+    function applyTransactionEffect(t) {
+      if (!t || !t.targetType || !t.targetId) return;
+      if (t.targetType === 'card' && t.type === 'expense') {
+        const card = cards.find(c => c.id === t.targetId);
+        if (card) card.used += t.amount;
+      } else if (t.targetType === 'bank') {
+        const bank = banks.find(b => b.id === t.targetId);
+        if (bank) {
+          if (t.type === 'expense') bank.balance -= t.amount;
+          else bank.balance += t.amount;
+        }
+      }
     }
 
     function saveTransaction(e) {
@@ -1449,20 +1824,48 @@
       const type = document.getElementById('transType').value;
       const category = document.getElementById('transCategory').value;
       const date = document.getElementById('transDate').value;
+      
+      const targetVal = document.getElementById('transTargetSelect').value;
+      let targetType = '';
+      let targetId = '';
+      let targetName = '';
+
+      if (targetVal && targetVal.includes(':')) {
+        [targetType, targetId] = targetVal.split(':');
+        if (targetType === 'card') {
+          const c = cards.find(item => item.id === targetId);
+          targetName = c ? c.name : 'Cartão';
+        } else {
+          const b = banks.find(item => item.id === targetId);
+          targetName = b ? b.name : 'Banco';
+        }
+      }
 
       if (id) {
-        transactions = transactions.map(t => t.id === id ? { id, description, amount, type, category, date } : t);
+        const oldTrans = transactions.find(t => t.id === id);
+        if (oldTrans) revertTransactionEffect(oldTrans);
+        const updatedTrans = { id, description, amount, type, category, date, targetType, targetId, targetName };
+        applyTransactionEffect(updatedTrans);
+        transactions = transactions.map(t => t.id === id ? updatedTrans : t);
       } else {
-        transactions.unshift({ id: Date.now().toString(), description, amount, type, category, date });
+        const newTrans = { id: Date.now().toString(), description, amount, type, category, date, targetType, targetId, targetName };
+        applyTransactionEffect(newTrans);
+        transactions.unshift(newTrans);
       }
 
       closeTransactionModal();
       saveState();
+      showToast("Lançamento registrado com sucesso!");
     }
 
     function deleteTransaction(id) {
-      transactions = transactions.filter(t => t.id !== id);
-      saveState();
+      openConfirmModal("Excluir Lançamento", "Deseja excluir este lançamento? O saldo do banco ou fatura será estornado.", () => {
+        const target = transactions.find(t => t.id === id);
+        if (target) revertTransactionEffect(target);
+        transactions = transactions.filter(t => t.id !== id);
+        saveState();
+        showToast("Lançamento excluído e saldo estornado.");
+      });
     }
 
     function openBudgetModal(category = null) {
@@ -1480,9 +1883,7 @@
       modal.classList.remove('hidden');
     }
 
-    function closeBudgetModal() {
-      document.getElementById('budgetModal').classList.add('hidden');
-    }
+    function closeBudgetModal() { document.getElementById('budgetModal').classList.add('hidden'); }
 
     function saveBudget(e) {
       e.preventDefault();
@@ -1498,11 +1899,40 @@
 
       closeBudgetModal();
       saveState();
+      showToast("Orçamento salvo!");
     }
 
     function deleteBudget(category) {
-      budgets = budgets.filter(b => b.category !== category);
-      saveState();
+      openConfirmModal("Remover Orçamento", `Remover o limite de orçamento para ${category}?`, () => {
+        budgets = budgets.filter(b => b.category !== category);
+        saveState();
+        showToast("Orçamento removido.");
+      });
+    }
+
+    // CRUD METAS
+    function populateGoalBankSelect(selectedBankId = '') {
+      const select = document.getElementById('goalLinkedBank');
+      select.innerHTML = `<option value="">Sem vínculo (controle manual)</option>` + 
+        banks.map(b => `<option value="${b.id}">🏦 ${b.name} (Saldo atual: ${formatCurrency(b.balance)})</option>`).join('');
+      select.value = selectedBankId || '';
+      handleGoalBankLinkChange();
+    }
+
+    function handleGoalBankLinkChange() {
+      const bankId = document.getElementById('goalLinkedBank').value;
+      const currentInput = document.getElementById('goalCurrent');
+      if (bankId) {
+        const bank = banks.find(b => b.id === bankId);
+        if (bank) {
+          currentInput.value = bank.balance;
+          currentInput.readOnly = true;
+          currentInput.classList.add('opacity-70', 'cursor-not-allowed');
+        }
+      } else {
+        currentInput.readOnly = false;
+        currentInput.classList.remove('opacity-70', 'cursor-not-allowed');
+      }
     }
 
     function openGoalModal(id = null) {
@@ -1517,90 +1947,148 @@
         document.getElementById('goalTarget').value = item.target;
         document.getElementById('goalCurrent').value = item.current;
         document.getElementById('goalCategory').value = item.category || '';
+        populateGoalBankSelect(item.linkedBankId || '');
         title.innerText = "Editar Meta";
       } else {
         document.getElementById('goalForm').reset();
         document.getElementById('goalId').value = "";
+        populateGoalBankSelect('');
         title.innerText = "Nova Meta";
       }
       modal.classList.remove('hidden');
     }
 
-    function closeGoalModal() {
-      document.getElementById('goalModal').classList.add('hidden');
-    }
+    function closeGoalModal() { document.getElementById('goalModal').classList.add('hidden'); }
 
     function saveGoal(e) {
       e.preventDefault();
       const id = document.getElementById('goalId').value;
       const title = document.getElementById('goalTitle').value;
       const target = parseFloat(document.getElementById('goalTarget').value);
-      const current = parseFloat(document.getElementById('goalCurrent').value || 0);
+      const linkedBankId = document.getElementById('goalLinkedBank').value;
+      let current = parseFloat(document.getElementById('goalCurrent').value || 0);
       const category = document.getElementById('goalCategory').value;
 
+      if (linkedBankId) {
+        const bank = banks.find(b => b.id === linkedBankId);
+        if (bank) current = bank.balance;
+      }
+
       if (id) {
-        goals = goals.map(g => g.id === id ? { id, title, target, current, category } : g);
+        goals = goals.map(g => g.id === id ? { id, title, target, current, category, linkedBankId } : g);
       } else {
-        goals.push({ id: Date.now().toString(), title, target, current, category });
+        goals.push({ id: Date.now().toString(), title, target, current, category, linkedBankId });
       }
 
       closeGoalModal();
       saveState();
+      showToast("Meta financeira salva!");
     }
 
     function deleteGoal(id) {
-      goals = goals.filter(g => g.id !== id);
-      saveState();
+      openConfirmModal("Excluir Meta", "Deseja realmente excluir esta meta financeira?", () => {
+        goals = goals.filter(g => g.id !== id);
+        saveState();
+        showToast("Meta removida.");
+      });
     }
 
+    // MOVIMENTAÇÕES NA META (SOMAR OU DIMINUIR)
     function openContributionModal(id) {
+      const goal = goals.find(g => g.id === id);
+      if (!goal) return;
+
       document.getElementById('contribGoalId').value = id;
       document.getElementById('contribAmount').value = '';
+      document.getElementById('contribOperation').value = 'add';
+
+      const noticeEl = document.getElementById('contribBankNotice');
+      if (goal.linkedBankId) {
+        const bank = banks.find(b => b.id === goal.linkedBankId);
+        if (bank) {
+          noticeEl.innerText = `Esta meta está sincronizada com "${bank.name}". Ao adicionar ou retirar aqui, o saldo da conta também será atualizado automaticamente!`;
+          noticeEl.classList.remove('hidden');
+        } else {
+          noticeEl.classList.add('hidden');
+        }
+      } else {
+        noticeEl.classList.add('hidden');
+      }
+
       document.getElementById('contributionModal').classList.remove('hidden');
     }
 
-    function closeContributionModal() {
-      document.getElementById('contributionModal').classList.add('hidden');
-    }
+    function closeContributionModal() { document.getElementById('contributionModal').classList.add('hidden'); }
 
     function submitContribution(e) {
       e.preventDefault();
       const id = document.getElementById('contribGoalId').value;
+      const op = document.getElementById('contribOperation').value;
       const amount = parseFloat(document.getElementById('contribAmount').value);
 
-      goals = goals.map(g => g.id === id ? { ...g, current: g.current + amount } : g);
+      const goal = goals.find(g => g.id === id);
+      if (!goal) return;
+
+      const delta = op === 'add' ? amount : -amount;
+
+      if (goal.linkedBankId) {
+        const bank = banks.find(b => b.id === goal.linkedBankId);
+        if (bank) {
+          if (op === 'sub' && bank.balance < amount) {
+            showToast("Saldo insuficiente na conta vinculada para retirada!", "error");
+            return;
+          }
+          bank.balance += delta;
+          goal.current = bank.balance;
+        }
+      } else {
+        if (op === 'sub' && goal.current < amount) {
+          showToast("O valor de retirada é maior que o guardado na meta!", "error");
+          return;
+        }
+        goal.current = Math.max(0, goal.current + delta);
+      }
+
       closeContributionModal();
       saveState();
+      showToast(op === 'add' ? `Aporte de ${formatCurrency(amount)} adicionado à meta!` : `Retirada de ${formatCurrency(amount)} descontada da meta!`);
     }
 
     function runAutomations() {
       const selectedMonth = document.getElementById('monthFilter').value;
       const aluguelExiste = transactions.some(t => t.description.includes('Aluguel') && t.date.startsWith(selectedMonth));
       
-      if (!aluguelExiste) {
-        transactions.unshift({
+      if (!aluguelExiste && banks.length > 0) {
+        const mainBank = banks[0];
+        const newTrans = {
           id: Date.now().toString(),
           description: 'Aluguel & Condomínio (Recorrente Auto)',
           amount: 2400,
           type: 'expense',
           category: 'Moradia',
-          date: `${selectedMonth}-05`
-        });
-        alert(`Automação executada! Lançamento recorrente de Aluguel adicionado ao mês ${selectedMonth}.`);
+          date: `${selectedMonth}-05`,
+          targetType: 'bank',
+          targetId: mainBank.id,
+          targetName: mainBank.name
+        };
+        applyTransactionEffect(newTrans);
+        transactions.unshift(newTrans);
         saveState();
+        showToast(`Automação executada: Aluguel lançado e descontado de ${mainBank.name}!`);
       } else {
-        alert("Automações checadas: Todos os custos recorrentes já estão lançados neste mês.");
+        showToast("Automações verificadas: Tudo em dia para este mês!", "warning");
       }
     }
 
     function exportBackup() {
-      const data = { transactions, budgets, goals };
+      const data = { transactions, budgets, goals, cards, banks };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `fincontrol_backup_${new Date().toISOString().split('T')[0]}.json`;
       a.click();
+      showToast("Arquivo de backup exportado!");
     }
 
     function importBackup(e) {
@@ -1615,23 +2103,32 @@
             transactions = parsed.transactions;
             budgets = parsed.budgets;
             goals = parsed.goals;
+            if (parsed.cards) cards = parsed.cards;
+            if (parsed.banks) banks = parsed.banks;
             saveState();
-            alert("Backup importado com sucesso!");
+            showToast("Backup importado com sucesso!");
           }
         } catch (err) {
-          alert("Erro ao ler arquivo de backup inválido.");
+          showToast("Erro ao ler arquivo de backup inválido.", "error");
         }
       };
       reader.readAsText(file);
     }
 
-    function resetDemoData() {
-      if (confirm("Deseja resetar e voltar para os dados de demonstração padrão?")) {
-        transactions = initialTransactions;
-        budgets = initialBudgets;
-        goals = initialGoals;
-        saveState();
-      }
+    function confirmResetDemoData() {
+      openConfirmModal(
+        "Redefinir Todos os Dados?",
+        "Tem certeza que deseja redefinir o sistema? Você perderá TODO o seu progresso atual, lançamentos, metas, cartões e saldos cadastrados, voltando aos dados iniciais de demonstração.",
+        () => {
+          transactions = JSON.parse(JSON.stringify(initialTransactions));
+          budgets = JSON.parse(JSON.stringify(initialBudgets));
+          goals = JSON.parse(JSON.stringify(initialGoals));
+          cards = JSON.parse(JSON.stringify(initialCards));
+          banks = JSON.parse(JSON.stringify(initialBanks));
+          saveState();
+          showToast("Sistema redefinido para os dados iniciais!");
+        }
+      );
     }
   </script>
 </body>
